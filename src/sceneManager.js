@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
-//import { circle } from 'three/examples/jsm/tsl/display/Shape.js';
+
+import { createTieWings } from '../models_code/TIE-Fighter/wings.js';
 
 
 export class SceneManager {
@@ -25,6 +26,8 @@ export class SceneManager {
 		scene.add(axes);
 
 		//FONDO 
+		// creo una esfera, la escalo en -1 de alguna coordenada para que la textura se vea de adentro, y le pongo la textura de galaxia
+
 		const background_loader = new THREE.TextureLoader();
 
 		background_loader.load(fondo, (texture) => {
@@ -42,6 +45,8 @@ export class SceneManager {
 		    scene.add(this.background);
 		});
 
+		const wings = createTieWings();
+		scene.add(wings);
 		}
 
 	
