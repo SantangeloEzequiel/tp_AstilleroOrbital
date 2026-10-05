@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import * as atlas_uv from './atlas_uv.js'
 
 
 
@@ -12,7 +13,8 @@ const WIDTH= 270 * SCALE;
 const SIDE_LENGTH = 170 *SCALE;
 const FRAME_DIAMETER = 8 * SCALE; //El diametro del borde de tubo del hexagono
 const PYLONS_HEIGHT = 100 * SCALE;
-const PYLONS_DEPTH = 100 * SCALE;
+const PYLONS_DEPTH = 80 * SCALE;
+const PYLON_BODY_DEPTH = 20 * SCALE;
 
 
 
@@ -26,6 +28,7 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
 
     const geometry = new THREE.BufferGeometry;
     const position = [];
+    const uv = [];
     //Creo el array de posiciones
 
     //se agranda
@@ -35,6 +38,11 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
             let position_width = -actual_row/2 + x * actual_row/widthSegments;
             let position_height = height /2 -y * height/heightSegments;
             position.push(position_width, position_height,0);
+            
+            //uv
+            const u = (position_width + width / 2) / width;
+            const v = (position_height + height / 2) / height;        
+            uv.push(u, v);
         }
     } 
     
@@ -45,6 +53,11 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
             let position_width = -actual_row/2 + x * actual_row/widthSegments;
             let position_height = height /2 -y * height/heightSegments;
             position.push(position_width, position_height,0);
+            
+            //uv
+            const u = (position_width + width / 2) / width;
+            const v = (position_height + height / 2) / height;        
+            uv.push(u, v);
         }
     }
 
@@ -69,6 +82,7 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
 
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(position),3));
+    geometry.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(uv),2));
     geometry.setIndex(indices);
 
     return geometry;
@@ -244,16 +258,6 @@ function buildHexagonalFrustumBorders(vertices_x,vertices_y,depth){
     }
 }
 
-function addDummyUVs(geometry) {
-    const count = geometry.attributes.position.count;
-    const uvs = new Float32Array(count * 2);
-
-    geometry.setAttribute(
-        'uv',
-        new THREE.BufferAttribute(uvs, 2)
-    );
-}
-
 function buildHexagonalDoubleFrustum(widthSegments,heightSegments,side_length,depth){
     //defino vertices en sentido horario empezando por arrriba, repito devuelta el primero en la ultima posicion para simplificar codigo
     const height = side_length * Math.sqrt(3);
@@ -292,8 +296,8 @@ function buildHexagonalDoubleFrustum(widthSegments,heightSegments,side_length,de
     //AGREGO ESTO PROVISIONALMENTE PARA COMPATIBILIDAD EN MERGEGEOMETRIES
     hexagon_front.computeVertexNormals();
     hexagon_back.computeVertexNormals();
-    addDummyUVs(hexagon_front);
-    addDummyUVs(hexagon_back);
+    //addDummyUVs(hexagon_front);
+    //addDummyUVs(hexagon_back);
 
     return BufferGeometryUtils.mergeGeometries([
         hexagon_back,
@@ -313,23 +317,26 @@ function buildHexagonalFrustumCenterTriangules(vertices_x,vertices_y,depth){
         vertices_y.slice(0, 6).reduce((sum, y) => sum + y, 0) / 6;
 
     const hexagonalTriangules = [];
+
+    const uv = new Float32Array([
+        0, 0,
+        1, 0,
+        0.5, 1
+    ]);
+
     for (let side = 0; side<6; side++){
     //Creo el triangulo con 3 vertices
         const triangule = new THREE.BufferGeometry;
         const vertices = new Float32Array([
             vertices_x[side], vertices_y[side], 0,
             vertices_x[side+1], vertices_y[side+1], 0,
-            (centerX+vertices_x[side]/10), (centerY+vertices_y[side]/10), depth //Lo dejo apenas abierto para dar la sensacion de union
-        ]);
-        triangule.setAttribute(
-            'position',
-            new THREE.BufferAttribute(vertices, 3)
-        );
+            (centerX), (centerY), depth]);
+
+        triangule.setAttribute('position',new THREE.BufferAttribute(vertices, 3));
+        triangule.setAttribute('uv',new THREE.BufferAttribute(uv, 2));
+        
         triangule.setIndex([0, 1, 2]);
         triangule.computeVertexNormals();
-
-        //PROVISIONAL
-        addDummyUVs(triangule);
 
         hexagonalTriangules.push(triangule)
     }
@@ -385,11 +392,15 @@ function buildPylons(widthSegments,heightSegments,side_length,depth,diameter){
     const conector = buildHexagonalConector(widthSegments,heightSegments,side_length,depth);
     
     conector.translate(-width / 2, -height / 2, 0);
+    hexagonal_frustum.translate(0,0,-diameter / 2);
 
-    return BufferGeometryUtils.mergeGeometries(
+
+    const pylon = BufferGeometryUtils.mergeGeometries(
         [hexagonal_frustum,conector],
         false
     );
+    
+    return pylon;
 }
 
 //********************* */
@@ -399,48 +410,48 @@ function buildPylons(widthSegments,heightSegments,side_length,depth,diameter){
 export function createTieWings(){
 
     //wing_hexagon
-    const hexagon = buildHexagon(12,12,WIDTH,HEIGHT,SIDE_LENGTH);
+    const hexagon = buildHexagon(20,60,WIDTH,HEIGHT,SIDE_LENGTH);
     const material_hexagon = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        color: 0x000000 });
+        map: atlas_uv.alaDerPanelesNegros});
     const wing_hexagon = new THREE.Mesh(hexagon, material_hexagon);
 
     //wing_hexagon_border
     const hexagon_border = buildHexagonBorders(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,20,120);
     const material_border = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        color: 0x888888 });
+        map: atlas_uv.tiraVertical});
     const wing_hexagon_border = new THREE.Mesh(hexagon_border, material_border);
     
     //wing_triangules
     const triangules = buildTriangulesToHexagonVertex(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,60,120);
     const material_triangules = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        color: 0x888888 });
+        map: atlas_uv.tiraVertical});
     const wing_triangules = new THREE.Mesh(triangules, material_triangules);
 
     //wing_pylon
-    const pylon = buildPylons(60,120,PYLONS_HEIGHT / Math.sqrt(3),PYLONS_DEPTH,FRAME_DIAMETER);
+    const pylon = buildPylons(60,120,PYLONS_HEIGHT / Math.sqrt(3),PYLONS_DEPTH,PYLON_BODY_DEPTH);
     const material_pylon = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        color: 0x888888 });
+        map: atlas_uv.tiraVertical});
     const wing_pylon = new THREE.Mesh(pylon, material_pylon);
     
     //GROUPING
     const wing = new THREE.Group;
 
     wing.add(wing_hexagon);
-    wing_hexagon.translateX(WIDTH/2);
-    wing_hexagon.translateY(HEIGHT/2);
 
     wing.add(wing_hexagon_border);
+    wing_hexagon_border.translateX(-WIDTH/2);
+    wing_hexagon_border.translateY(-HEIGHT/2);
 
     wing.add(wing_triangules);
+    wing_triangules.translateX(-WIDTH/2);
+    wing_triangules.translateY(-HEIGHT/2);
 
     wing.add(wing_pylon);
-    wing_pylon.translateX(WIDTH/2);
-    wing_pylon.translateY(HEIGHT/2);
-    wing_pylon.translateZ(-FRAME_DIAMETER/2);
+ //   wing_pylon.translateZ(-FRAME_DIAMETER/2);
 
     return wing;
 }
