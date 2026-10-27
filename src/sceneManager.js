@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
 
 import { createTieWings } from '../models_code/TIE-Fighter/wings.js';
+import { createTieFuselage } from '../models_code/TIE-Fighter/fuselage.js';
+import { LENGTH } from '../models_code/TIE-Fighter/fuselage.js';
+import { DIAMETER_CENTER } from '../models_code/TIE-Fighter/fuselage.js';
 
 
 export class SceneManager {
@@ -45,8 +48,23 @@ export class SceneManager {
 		    scene.add(this.background);
 		});
 
-		const wings = createTieWings();
-		scene.add(wings);
+
+		// SCRIPT
+		const wings1 = createTieWings();
+		const wings2 = createTieWings();
+		const fuselage = createTieFuselage();
+
+		const ship = new THREE.Group;
+
+		ship.add(wings1);
+		ship.add(wings2);
+		ship.add(fuselage);
+		wings1.rotateY(Math.PI/2);
+		wings2.rotateY(-Math.PI/2);
+		wings1.translateZ(-(LENGTH+DIAMETER_CENTER)/2);
+		wings2.translateZ(-(LENGTH+DIAMETER_CENTER)/2);
+		scene.add(ship);
+		
 		}
 
 	

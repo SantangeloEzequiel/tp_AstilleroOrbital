@@ -7,7 +7,7 @@ import * as atlas_uv from './atlas_uv.js'
 
 
 //Medidas
-const SCALE = 0.001;
+const SCALE = 0.01;
 const HEIGHT= 310 * SCALE;
 const WIDTH= 270 * SCALE;
 const SIDE_LENGTH = 170 *SCALE;

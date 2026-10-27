@@ -1,0 +1,13 @@
+TIE FIGHTER PROPORTIONS
+
+	wings
+		all sides equal = 170;
+		hexagon height = 310
+		hexagon width =  270
+		wing pylon depth = 100 (without accesories)
+		wing pylon heigth = 90
+		wing pylon width = 100
+		wing frame thickness = 8 (diameter)
+
+	fuselage
+		width= 845
