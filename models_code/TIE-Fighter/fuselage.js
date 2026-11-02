@@ -81,10 +81,10 @@ function buildTube(length,radius,radialSegments,lengthSegments){
         for (let j = 0; j <= radialSegments; j++) {
             const u = j / radialSegments;
 
-            const texU = v; // Izquierda a derecha del fuselaje
-            const texV = u; // Alrededor de la circunferencia
+            const texU = u;
+            const texV = (1 - v) * 2; // Repite dos veces a lo largo
 
-            const index = i * (radialSegments + 1) + j;
+            const index = j * (lengthSegments + 1) + i;
 
             uv.setXY(index, texU, texV);
         }
@@ -160,6 +160,8 @@ export function createTieFuselage() {
 
     const material_sphere = new THREE.MeshBasicMaterial({ 
             map: atlas_uv.panelesCabinaMitades});
+
+    atlas_uv.soportesBrazo.wrapT = THREE.RepeatWrapping            
     const material_tube = new THREE.MeshBasicMaterial({ 
             map: atlas_uv.soportesBrazo});
     
