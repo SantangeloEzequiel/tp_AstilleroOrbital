@@ -13,7 +13,7 @@ const WIDTH= 270 * SCALE;
 const SIDE_LENGTH = 170 *SCALE;
 const FRAME_DIAMETER = 8 * SCALE; //El diametro del borde de tubo del hexagono
 const PYLONS_HEIGHT = 100 * SCALE;
-const PYLONS_DEPTH = 80 * SCALE;
+const PYLONS_WIDTH = 80 * SCALE;
 const PYLON_BODY_DEPTH = 20 * SCALE;
 
 
@@ -226,183 +226,6 @@ function buildTriangulesToHexagonVertex(height,width,side_length,diameter,u_numb
     );
 }
 
-
-//********************* */
-// PYLONS
-//******************* */ 
-//parte del centro que se une con los bordes y se ancla al fuselaje
-
-//EL cuerpo principal es un hexagono piramidal doble
-
-function buildHexagonalFrustumBorders(vertices_x,vertices_y,depth){
-    return function(u,v,target){
-        let side = Math.floor(6*v);
-        if(side == 6) side = 5;
-        
-        const x0 = vertices_x[side];
-        const x1 = vertices_x[side+1];
-        
-        const y0 = vertices_y[side];
-        const y1 = vertices_y[side+1];
-
-        const local_v = v * 6 - side;
-
-        const dx = (x1-x0);
-        const dy = (y1-y0);
-        
-        const x = x0 + dx * local_v ;
-        const y = y0 + dy * local_v ; 
-        const z = depth * u;
-        
-        target.set(x,y,z);
-    }
-}
-
-function buildHexagonalDoubleFrustum(widthSegments,heightSegments,side_length,depth){
-    //defino vertices en sentido horario empezando por arrriba, repito devuelta el primero en la ultima posicion para simplificar codigo
-    const height = side_length * Math.sqrt(3);
-    const width = height;
-
-    const vertices_y = [
-        height,
-        height,
-        height/2,
-        0,
-        0,
-        height/2,
-        height];
-    const vertices_x = [
-        width - (width-side_length) /2,
-        (width-side_length) /2,
-        0,
-        (width-side_length)/2,
-        width - (width-side_length) /2,
-        width,
-        width - (width-side_length) /2];
-
-    const hexagon_front = buildHexagon(widthSegments/3,heightSegments/3,width,height,side_length);
-
-    const hexagonal_frustum_borders = new ParametricGeometry(
-        buildHexagonalFrustumBorders(vertices_x,vertices_y,depth),widthSegments/3,heightSegments/3
-    );
-
-    const hexagon_back = buildHexagon(widthSegments/3,heightSegments/3,width,height,side_length);
-    
-
-    //POSITION CORRECTION
-    hexagonal_frustum_borders.translate(-height/2,-width/2,0);
-    hexagon_back.translate(0,0,depth);
-
-    //AGREGO ESTO PROVISIONALMENTE PARA COMPATIBILIDAD EN MERGEGEOMETRIES
-    hexagon_front.computeVertexNormals();
-    hexagon_back.computeVertexNormals();
-    //addDummyUVs(hexagon_front);
-    //addDummyUVs(hexagon_back);
-
-    return BufferGeometryUtils.mergeGeometries([
-        hexagon_back,
-        hexagon_front,
-        hexagonal_frustum_borders],
-        false
-    );
-}
-
-function buildHexagonalFrustumCenterTriangules(vertices_x,vertices_y,depth){
-    
-    
-    const centerX =
-        vertices_x.slice(0, 6).reduce((sum, x) => sum + x, 0) / 6;
-
-    const centerY =
-        vertices_y.slice(0, 6).reduce((sum, y) => sum + y, 0) / 6;
-
-    const hexagonalTriangules = [];
-
-    const uv = new Float32Array([
-        0, 0,
-        1, 0,
-        0.5, 1
-    ]);
-
-    for (let side = 0; side<6; side++){
-    //Creo el triangulo con 3 vertices
-        const triangule = new THREE.BufferGeometry;
-        const vertices = new Float32Array([
-            vertices_x[side], vertices_y[side], 0,
-            vertices_x[side+1], vertices_y[side+1], 0,
-            (centerX), (centerY), depth]);
-
-        triangule.setAttribute('position',new THREE.BufferAttribute(vertices, 3));
-        triangule.setAttribute('uv',new THREE.BufferAttribute(uv, 2));
-        
-        triangule.setIndex([0, 1, 2]);
-        triangule.computeVertexNormals();
-
-        hexagonalTriangules.push(triangule)
-    }
-
-     return BufferGeometryUtils.mergeGeometries(
-        hexagonalTriangules,
-        false
-    );
-}
-
-function buildHexagonalConector(widthSegments,heightSegments,side_length, depth,diameter){
-    
-    const height = side_length * Math.sqrt(3);
-    const width = height;
-
-    const vertices_y = [
-        height,
-        height,
-        height/2,
-        0,
-        0,
-        height/2,
-        height];
-    const vertices_x = [
-        width - (width-side_length) /2,
-        (width-side_length) /2,
-        0,
-        (width-side_length)/2,
-        width - (width-side_length) /2,
-        width,
-        width - (width-side_length) /2];
-
-    const hexagonal_frustum_borders = new ParametricGeometry(
-        buildHexagonalFrustumBorders(vertices_x,vertices_y,depth/4),widthSegments/3,heightSegments/3
-    );
-
-    const hexagonal_frustum_center_triangules = buildHexagonalFrustumCenterTriangules(vertices_x,vertices_y,depth/4);
-
-    hexagonal_frustum_center_triangules.translate(0,0,depth/4);
-    
-    return BufferGeometryUtils.mergeGeometries(
-        [hexagonal_frustum_borders, hexagonal_frustum_center_triangules],
-        false
-    );
-}
-
-function buildPylons(widthSegments,heightSegments,side_length,depth,diameter){
-    
-    const height = side_length * Math.sqrt(3);
-    const width = height;
-    
-    const hexagonal_frustum = buildHexagonalDoubleFrustum(widthSegments,heightSegments,side_length,diameter);
-    const conector = buildHexagonalConector(widthSegments,heightSegments,side_length,depth);
-    
-    conector.translate(-width / 2, -height / 2, 0);
-    hexagonal_frustum.translate(0,0,-diameter / 2);
-
-
-    const pylon = BufferGeometryUtils.mergeGeometries(
-        [hexagonal_frustum,conector],
-        false
-    );
-    
-    return pylon;
-}
-
 //********************* */
 // COMPLETE WING
 //******************* */ 
@@ -430,12 +253,25 @@ export function createTieWings(){
         map: atlas_uv.tiraVertical});
     const wing_triangules = new THREE.Mesh(triangules, material_triangules);
 
-    //wing_pylon
-    const pylon = buildPylons(60,120,PYLONS_HEIGHT / Math.sqrt(3),PYLONS_DEPTH,PYLON_BODY_DEPTH);
-    const material_pylon = new THREE.MeshBasicMaterial({ 
+    // wing_pylon
+    const pylonSideLength = PYLONS_WIDTH - PYLONS_HEIGHT / Math.sqrt(3) * 0.5;
+
+    const hexagon_pylon = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
+
+    const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER,20,60);
+
+    const material_pylon = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical});
-    const wing_pylon = new THREE.Mesh(pylon, material_pylon);
+        map: atlas_uv.alaIzqHexagonoCentro
+    });
+
+    const material_pylon_border = new THREE.MeshBasicMaterial({
+        side: THREE.DoubleSide,
+        map: atlas_uv.tiraVertical
+    });
+
+    const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
+    const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);
     
     //GROUPING
     const wing = new THREE.Group;
@@ -450,8 +286,14 @@ export function createTieWings(){
     wing_triangules.translateX(-WIDTH/2);
     wing_triangules.translateY(-HEIGHT/2);
 
-    wing.add(wing_pylon);
- //   wing_pylon.translateZ(-FRAME_DIAMETER/2);
+    wing.add(pylon);
+    wing.add(pylon_border);
+
+    pylon_border.translateX(-PYLONS_WIDTH/2);
+    pylon_border.translateY(-PYLONS_HEIGHT/2);
+    
+    pylon_border.translateZ(FRAME_DIAMETER);
+    pylon.translateZ(2*FRAME_DIAMETER);
 
     return wing;
 }

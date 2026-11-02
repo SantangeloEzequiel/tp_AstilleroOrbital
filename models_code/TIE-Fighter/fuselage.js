@@ -5,7 +5,7 @@ import * as atlas_uv from './atlas_uv.js'
 import { Group } from 'three/examples/jsm/libs/tween.module.js';
 
 const SCALE = 0.009;
-export const LENGTH = 270 * SCALE;
+export const LENGTH = 270 * SCALE; //2/3 cockpit - 1/3 tubes
 export const DIAMETER_CENTER = 85 * SCALE;
 const DIAMETER_EXT = 26 * SCALE;
 const DIAMETER_COCKPIT = 56 * SCALE;
@@ -32,10 +32,34 @@ function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiame
         },
         radialSegments,heightSegments
     )
+
+    //UV PLANO
+
+    const uv = sphere_flattened.attributes.uv;
+
+    for (let i = 0; i <= heightSegments; i++) {
+        const v = i / heightSegments;
+
+        for (let j = 0; j <= radialSegments; j++) {
+            const u = j / radialSegments;
+
+            const texU = v; // Izquierda a derecha del fuselaje
+            const texV = u; // Alrededor de la circunferencia
+
+            const index = i * (radialSegments + 1) + j;
+
+            uv.setXY(index, texU, texV);
+        }
+    }
+
+    uv.needsUpdate = true;
+
+
     return sphere_flattened;
 }
 
 function buildTube(length,radius,radialSegments,lengthSegments){
+
     const tube = new ParametricGeometry(
         function(u,v,target){
             const phi = u * 2 * Math.PI;
@@ -46,6 +70,27 @@ function buildTube(length,radius,radialSegments,lengthSegments){
             target.set(x,y,z);
         }, radialSegments, lengthSegments
     )
+
+    //UV
+
+    const uv = tube.attributes.uv;
+
+    for (let i = 0; i <= lengthSegments; i++) {
+        const v = i / lengthSegments;
+
+        for (let j = 0; j <= radialSegments; j++) {
+            const u = j / radialSegments;
+
+            const texU = v; // Izquierda a derecha del fuselaje
+            const texV = u; // Alrededor de la circunferencia
+
+            const index = i * (radialSegments + 1) + j;
+
+            uv.setXY(index, texU, texV);
+        }
+    }
+
+    uv.needsUpdate = true;
 
     return tube;
 }
@@ -75,12 +120,12 @@ for (let i = 0; i <= heightSegments; i++) {
 
         const r = 0.5 * Math.sin(v * angle) / Math.sin(angle);
 
-        const texU = 0.5 + r * Math.sin(phi);
-        const texV = 0.5 + r * Math.cos(phi);
+        const texV = 0.5 + r * Math.sin(phi);
+        const texU = 0.5 + r * Math.cos(phi);
 
         const index = i * (radialSegments + 1) + j;
 
-        uv.setXY(index, texU, texV);
+        uv.setXY(index, texV, texU);
     }
 }
 
@@ -92,11 +137,26 @@ uv.needsUpdate = true;
 //********************* */
 // COMPLETE FUSELAGE
 //******************* */ 
-export function createTieFuselage(){
+export function createTieFuselage() {
 
-    const sphere_flattened = buildSphereFlattened(DIAMETER_CENTER/2, Math.PI/3.5 ,2.6 ,(LENGTH)/3.5 ,DIAMETER_EXT , 64, 64);
+    const radius = DIAMETER_CENTER / 2;
 
-    const tube = buildTube((LENGTH - (DIAMETER_CENTER+LENGTH/3.5))/2 , DIAMETER_EXT , 64 , 64);
+    const tubeLength = LENGTH / 6;
+    const sphereLength = LENGTH - 2 * tubeLength;
+
+    const extraLength = sphereLength / 2 - radius;
+
+    const sphere_flattened = buildSphereFlattened(
+        radius,
+        Math.PI / 3.5,
+        1.8,
+        extraLength,
+        DIAMETER_EXT,
+        64,
+        64
+    );
+
+    const tube = buildTube(tubeLength, DIAMETER_EXT, 64, 64);
 
     const material_sphere = new THREE.MeshBasicMaterial({ 
             map: atlas_uv.panelesCabinaMitades});
@@ -113,8 +173,8 @@ export function createTieFuselage(){
     fuselage.add(tube1);
     fuselage.add(tube2);
 
-    tube1.translateX((DIAMETER_CENTER)/2+LENGTH/3.5);
-    tube2.translateX(-(DIAMETER_CENTER+LENGTH/3.5));
+    tube1.position.x = sphereLength / 2;
+    tube2.position.x = -LENGTH / 2;
 
     fuselage.rotateX(Math.PI/2);
     //Hasta aca el fuselaje sin cabina
@@ -127,7 +187,7 @@ export function createTieFuselage(){
     const cockpit = new THREE.Mesh(semi_sphere,material_cockpit);
     cockpit.rotateX(Math.PI/2);
     fuselage.add(cockpit);
-    cockpit.translateZ(DIAMETER_CENTER/2+DIAMETER_COCKPIT/2);
+    cockpit.translateZ(DIAMETER_CENTER/2);
 
     
 

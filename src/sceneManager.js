@@ -61,8 +61,8 @@ export class SceneManager {
 		ship.add(fuselage);
 		wings1.rotateY(Math.PI/2);
 		wings2.rotateY(-Math.PI/2);
-		wings1.translateZ(-(LENGTH+DIAMETER_CENTER)/2);
-		wings2.translateZ(-(LENGTH+DIAMETER_CENTER)/2);
+		wings1.translateZ(-LENGTH/2);
+		wings2.translateZ(-LENGTH/2);
 		scene.add(ship);
 		
 		}
