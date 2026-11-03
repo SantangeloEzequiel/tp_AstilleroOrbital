@@ -27,7 +27,7 @@ function buildHexagonalCurve(height,width,depth,heightSegments,widthSegments){
     const catmull_curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-depth / 2, -height / 2, 0),
         new THREE.Vector3( depth / 2, 0, 0),
-        new THREE.Vector3(-depth / 2, height / 2, 0)]);
+        new THREE.Vector3(-depth / 2, height / 2, 0)], false, 'catmullrom', 0.4);
     
     //
     const hexagonalCurve = new ParametricGeometry (
@@ -226,7 +226,7 @@ function buildHexagonCurveBorders(height,width,depth,diameter,u_number,v_number)
     const catmull_curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-depth / 2, -(height+diameter/2) / 2, 0),
         new THREE.Vector3( depth / 2, 0, 0),
-        new THREE.Vector3(-depth / 2, (height+diameter/2) / 2, 0)]);
+        new THREE.Vector3(-depth / 2, (height+diameter/2) / 2, 0)], false, 'catmullrom', 0.4);
 
     
     const rectLine = new THREE.LineCurve3(
