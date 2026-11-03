@@ -80,6 +80,8 @@ import escotillaRedondaUrl
 import escotillaVentanaCabinaUrl
     from './texturas/20_escotilla_ventana_cabina.png';
 
+import panelNegroUrl
+    from './texturas/textura_panel_negro_512.png';
 
 // ==========================================
 // TEXTURE LOADER
@@ -120,6 +122,8 @@ function loadTexture(url) {
 export const panelCascoSuperior =
     loadTexture(panelCascoSuperiorUrl);
 
+export const panelNegro = 
+    loadTexture(panelNegroUrl);
 
 export const soportesBrazo =
     loadTexture(soportesBrazoUrl);

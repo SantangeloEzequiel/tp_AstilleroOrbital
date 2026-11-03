@@ -14,7 +14,6 @@ const SIDE_LENGTH = 170 *SCALE;
 const FRAME_DIAMETER = 8 * SCALE; //El diametro del borde de tubo del hexagono
 const PYLONS_HEIGHT = 100 * SCALE;
 const PYLONS_WIDTH = 80 * SCALE;
-const PYLON_BODY_DEPTH = 20 * SCALE;
 
 
 
@@ -292,8 +291,10 @@ export function createTieWings(){
     pylon_border.translateX(-PYLONS_WIDTH/2);
     pylon_border.translateY(-PYLONS_HEIGHT/2);
     
-    pylon_border.translateZ(FRAME_DIAMETER);
-    pylon.translateZ(2*FRAME_DIAMETER);
+    pylon_border.translateZ(-FRAME_DIAMETER);
+    pylon.translateZ(-2 * FRAME_DIAMETER);
+    
+    wing.rotateY(-Math.PI/2);
 
     return wing;
 }

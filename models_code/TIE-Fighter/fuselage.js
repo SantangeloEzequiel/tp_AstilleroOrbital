@@ -8,7 +8,7 @@ const SCALE = 0.009;
 export const LENGTH = 270 * SCALE; //2/3 cockpit - 1/3 tubes
 export const DIAMETER_CENTER = 85 * SCALE;
 const DIAMETER_EXT = 26 * SCALE;
-const DIAMETER_COCKPIT = 56 * SCALE;
+const DIAMETER_COCKPIT = 65 * SCALE;
     
 
 function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiameter, radialSegments, heightSegments){
@@ -149,7 +149,7 @@ export function createTieFuselage() {
     const sphere_flattened = buildSphereFlattened(
         radius,
         Math.PI / 3.5,
-        1.8,
+        2,
         extraLength,
         DIAMETER_EXT,
         64,
@@ -189,7 +189,7 @@ export function createTieFuselage() {
     const cockpit = new THREE.Mesh(semi_sphere,material_cockpit);
     cockpit.rotateX(Math.PI/2);
     fuselage.add(cockpit);
-    cockpit.translateZ(DIAMETER_CENTER/2);
+    cockpit.translateZ(DIAMETER_CENTER - DIAMETER_COCKPIT * (0.75));
 
     
 

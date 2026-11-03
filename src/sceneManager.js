@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
 
-import { createTieWings } from '../models_code/TIE-Fighter/wings.js';
+import { createTieWings as createTieWings_1 } from '../models_code/TIE-Fighter/wings_1.js';
+import { createTieWings as createTieWings_2 } from '../models_code/TIE-Fighter/wings_2.js';
+import { createTieWings as createTieWings_3 } from '../models_code/TIE-Fighter/wings_3.js';
 import { createTieFuselage } from '../models_code/TIE-Fighter/fuselage.js';
 import { LENGTH } from '../models_code/TIE-Fighter/fuselage.js';
-import { DIAMETER_CENTER } from '../models_code/TIE-Fighter/fuselage.js';
+import { DEPTH } from '../models_code/TIE-Fighter/wings_2.js';
+import { FRAME_DIAMETER } from '../models_code/TIE-Fighter/wings_2.js';
+
 
 
 export class SceneManager {
@@ -50,20 +54,57 @@ export class SceneManager {
 
 
 		// SCRIPT
-		const wings1 = createTieWings();
-		const wings2 = createTieWings();
-		const fuselage = createTieFuselage();
 
-		const ship = new THREE.Group;
+		
+		//Ship1
+		const ship1_wings1 = createTieWings_1();
+		const ship1_wings2 = createTieWings_1();
+		const ship1_fuselage = createTieFuselage();
 
-		ship.add(wings1);
-		ship.add(wings2);
-		ship.add(fuselage);
-		wings1.rotateY(Math.PI/2);
-		wings2.rotateY(-Math.PI/2);
-		wings1.translateZ(-LENGTH/2);
-		wings2.translateZ(-LENGTH/2);
-		scene.add(ship);
+		const ship1 = new THREE.Group;
+
+		ship1.add(ship1_wings1);
+		ship1.add(ship1_wings2);
+		ship1.add(ship1_fuselage);
+		ship1_wings2.scale.set(1,1,-1);
+		ship1_wings1.position.x=((LENGTH-2*FRAME_DIAMETER + FRAME_DIAMETER)/2);
+		ship1_wings2.position.x=(-(LENGTH-2*FRAME_DIAMETER + FRAME_DIAMETER)/2);
+		
+		scene.add(ship1);
+		
+		//Ship2
+		const ship2_wings1 = createTieWings_2();
+		const ship2_wings2 = createTieWings_2();
+		const ship2_fuselage = createTieFuselage();
+
+		const ship2 = new THREE.Group;
+
+		ship2.add(ship2_wings1);
+		ship2.add(ship2_wings2);
+		ship2.add(ship2_fuselage);
+		ship2_wings2.scale.set(-1,1,1);
+		ship2_wings1.position.x=((LENGTH-DEPTH + FRAME_DIAMETER)/2);
+		ship2_wings2.position.x=(-(LENGTH-DEPTH + FRAME_DIAMETER)/2);
+		ship2.translateX(5);
+
+		scene.add(ship2);
+
+		//Ship3
+		const ship3_wings1 = createTieWings_3();
+		const ship3_wings2 = createTieWings_3();
+		const ship3_fuselage = createTieFuselage();
+
+		const ship3 = new THREE.Group;
+
+		ship3.add(ship3_wings1);
+		ship3.add(ship3_wings2);
+		ship3.add(ship3_fuselage);
+		ship3_wings2.scale.set(-1,1,1);
+		ship3_wings1.position.x=((LENGTH-DEPTH + FRAME_DIAMETER)/2);
+		ship3_wings2.position.x=(-(LENGTH-DEPTH + FRAME_DIAMETER)/2);
+
+		ship3.translateX(-5);
+		scene.add(ship3);
 		
 		}
 
