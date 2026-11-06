@@ -139,7 +139,16 @@ function buildBodyGeometry(height,width,angle,heightSegments,widthSegments){
 
 function getParametricCilinder(A,B,radius,radialSegments,lengthSegments){
     
-    const line = new THREE.LineCurve3(A,B);
+    //Primero extiendo la linea por el radio en A y B para que se solapen con el resto
+    const direction = new THREE.Vector3()
+        .subVectors(B, A)
+        .normalize();
+
+    const newA = A.clone().sub(direction.clone().multiplyScalar(radius/2));
+    const newB = B.clone().add(direction.clone().multiplyScalar(radius/2));
+
+    const line = new THREE.LineCurve3(newA, newB);
+    //con eso calculo la parametrizacion
     return new ParametricGeometry(
      function (u, v, target){
             let phi = 2 * Math.PI * u;

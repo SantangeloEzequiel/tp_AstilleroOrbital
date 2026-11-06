@@ -8,7 +8,7 @@ const SCALE = 0.009;
 export const LENGTH = 270 * SCALE; //2/3 cockpit - 1/3 tubes
 export const DIAMETER_CENTER = 85 * SCALE;
 const DIAMETER_EXT = 26 * SCALE;
-const DIAMETER_COCKPIT = 65 * SCALE;
+export const DIAMETER_COCKPIT = 65 * SCALE;
     
 
 function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiameter, radialSegments, heightSegments){
