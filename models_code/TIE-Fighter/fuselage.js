@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
-import { Group } from 'three/examples/jsm/libs/tween.module.js';
+
 
 const SCALE = 0.009;
 export const LENGTH = 270 * SCALE; //2/3 cockpit - 1/3 tubes
