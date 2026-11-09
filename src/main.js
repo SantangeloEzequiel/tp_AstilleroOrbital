@@ -8,7 +8,7 @@ import { CAMERA } from './cameras.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let cameras = {};
-let activeCamera= CAMERA.COCKPIT;
+let activeCamera= CAMERA.ORBITAL;
 
 //controles
 let controls_orbital;

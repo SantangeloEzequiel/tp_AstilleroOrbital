@@ -1,3 +1,5 @@
+import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7,7 +9,7 @@ import * as atlas_uv from './atlas_uv.js'
 
 // (En vez de un hexagono un circulo)
 
-const SCALE = 0.01;
+//Medidas
 const EXTERIOR_DIAMETER = (65 / 2) * SCALE; // half of cockpit diameter
 const DEPTH = 12 * SCALE;
 

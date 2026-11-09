@@ -1,4 +1,6 @@
 //La cabina vista desde adentro
+import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+
 
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
@@ -7,7 +9,8 @@ import * as atlas_uv from './atlas_uv.js'
 
 
 
-const SCALE = 0.01;
+
+//Medidas
 export const DIAMETER_COCKPIT = 65 * SCALE;
 const FRAME_WIDTH = 4 * SCALE;
 

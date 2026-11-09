@@ -74,9 +74,10 @@ https://starwars.fandom.com/wiki/TIE\_Fighter\_Construction\_Facility
 
 https://www.youtube.com/watch?v=n8gI8sU8-Zo
 
-
+https://www.youtube.com/watch?v=wqbvSNGKiuQ
 
 modelo del caza imperial TIE basado en :
+
 
 https://www.youtube.com/watch?v=e8LVb5QxHHU
 

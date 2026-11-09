@@ -1,13 +1,12 @@
+import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
 
 
-
-
 //Medidas
-const SCALE = 0.01;
 const HEIGHT= 310 * SCALE;
 const WIDTH= 270 * SCALE;
 const SIDE_LENGTH = 170 *SCALE;

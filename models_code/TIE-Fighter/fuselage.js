@@ -1,37 +1,51 @@
+import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+
+
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
 
 
-const SCALE = 0.009;
-export const LENGTH = 270 * SCALE; //2/3 cockpit - 1/3 tubes
-export const DIAMETER_CENTER = 85 * SCALE;
-const DIAMETER_EXT = 26 * SCALE;
-export const DIAMETER_COCKPIT = 65 * SCALE;
+//Medidas
+export const LENGTH = 280 * SCALE; //2/3 cockpit - 1/3 tubes
+export const DIAMETER_CENTER = 70 * SCALE;
+const DIAMETER_EXT = 24 * SCALE;
+export const DIAMETER_COCKPIT = 60 * SCALE;
     
 
 function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiameter, radialSegments, heightSegments){
-    const bezier_curve = new THREE.CubicBezierCurve(
-        new THREE.Vector2(-(radius+length), extDiameter),
-        new THREE.Vector2(-radius * Math.cos(angle),radius * pronunciation + extDiameter),
-        new THREE.Vector2( radius * Math.cos(angle),radius * pronunciation + extDiameter),
-        new THREE.Vector2(radius + length, extDiameter)
-    );
 
-    const sphere_flattened = new ParametricGeometry (
+    const totalLength = radius + length;
+    const maxRadius = radius * pronunciation + extDiameter;
+
+    const catmull_curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-totalLength, extDiameter, 0),
+        new THREE.Vector3(-totalLength * 0.85, extDiameter + (maxRadius-extDiameter)*0.25, 0),
+        new THREE.Vector3(-totalLength * 0.65, extDiameter + (maxRadius-extDiameter)*0.65, 0),
+        new THREE.Vector3(-totalLength * 0.35, maxRadius * 0.95, 0),
+        new THREE.Vector3(0, maxRadius, 0),
+        new THREE.Vector3(totalLength * 0.35, maxRadius * 0.95, 0),
+        new THREE.Vector3(totalLength * 0.65, extDiameter + (maxRadius-extDiameter)*0.65, 0),
+        new THREE.Vector3(totalLength * 0.85, extDiameter + (maxRadius-extDiameter)*0.25, 0),
+        new THREE.Vector3(totalLength, extDiameter, 0)
+    ], false, 'centripetal');
+
+    const sphere_flattened = new ParametricGeometry(
         function(u,v,target){
-            const phi = u * 2 * Math.PI
-            const point = bezier_curve.getPoint(v);
+            const phi = u * 2 * Math.PI;
+            const point = catmull_curve.getPoint(v);
 
             const x = point.x;
             const y = point.y * Math.cos(phi);
             const z = point.y * Math.sin(phi);
 
-            target.set(x,y,z);
+            // Plano de corte frontal
+            const cuty = - radius * 2;
+            target.set(x, Math.max(y, cuty), z);;
         },
         radialSegments,heightSegments
-    )
+    );
 
     //UV PLANO
 
@@ -43,8 +57,8 @@ function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiame
         for (let j = 0; j <= radialSegments; j++) {
             const u = j / radialSegments;
 
-            const texU = v; // Izquierda a derecha del fuselaje
-            const texV = u; // Alrededor de la circunferencia
+            const texU = v;
+            const texV = u;
 
             const index = i * (radialSegments + 1) + j;
 
@@ -53,7 +67,6 @@ function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiame
     }
 
     uv.needsUpdate = true;
-
 
     return sphere_flattened;
 }
@@ -103,7 +116,7 @@ function buildSemiSphere(radius,angle,radialSegments,heightSegments){
 
             const x = radius * Math.sin(tita) * Math.sin(phi);
             const y = radius * Math.sin(tita) * Math.cos(phi);
-            const z = radius * Math.cos(tita); 
+            const z = radius * Math.cos(tita) * 0.5; 
             target.set(x,y,z);
         },radialSegments , heightSegments
     )
@@ -156,18 +169,20 @@ export function createTieFuselage() {
         64
     );
 
+    const material_sphere = new THREE.MeshBasicMaterial({
+    map: atlas_uv.panelesCabinaMitades});
+    const fuselage_center = new THREE.Mesh(sphere_flattened, material_sphere);
+    
+    
     const tube = buildTube(tubeLength, DIAMETER_EXT, 64, 64);
-
-    const material_sphere = new THREE.MeshBasicMaterial({ 
-            map: atlas_uv.panelesCabinaMitades});
-
     atlas_uv.soportesBrazo.wrapT = THREE.RepeatWrapping            
     const material_tube = new THREE.MeshBasicMaterial({ 
             map: atlas_uv.soportesBrazo});
     
     const tube1 = new THREE.Mesh(tube, material_tube);
     const tube2 = new THREE.Mesh(tube, material_tube);
-    const fuselage_center = new THREE.Mesh(sphere_flattened, material_sphere);
+    
+    //GROUPING
 
     const fuselage = new THREE.Group;
     
@@ -189,7 +204,7 @@ export function createTieFuselage() {
     const cockpit = new THREE.Mesh(semi_sphere,material_cockpit);
     cockpit.rotateX(Math.PI/2);
     fuselage.add(cockpit);
-    cockpit.translateZ(DIAMETER_CENTER - DIAMETER_COCKPIT * (0.75));
+    cockpit.translateZ(((DIAMETER_CENTER + DIAMETER_COCKPIT)/2));
 
     
 

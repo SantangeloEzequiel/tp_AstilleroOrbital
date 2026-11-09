@@ -1,0 +1,1 @@
+export const SCALE_TIE_FIGHTER = 0.01;
