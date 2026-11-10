@@ -4,8 +4,9 @@ import {SCALE_HANGAR as SCALE} from '../../constants.js';
 //MEDIDAS GENERALES
 export const TOTAL_WIDTH = 160 * SCALE;
 export const TOTAL_DEPTH = 185 * SCALE;
-export const TOTAL_HEIGHT = 40 * SCALE;
+export const TOTAL_HEIGHT = 60 * SCALE;
 export const TOTAL_PROPORTION = 0.5; // porcentaje del lado del octagono recto con respecto a la altura total antes que se doble
+export const TOTAL_EXTERIOR_HEIGTH_PROPORTION = 2;
 
 //CANTIDADES
 export const LATERAL_COLUMNS_PER_SIDE = 16 * SCALE; //separadas por un espacio entre medio que no tiene nada
@@ -23,8 +24,9 @@ export const COLUMNS_PILON_HEIGTH = 4 * SCALE;
 export const LIGHT_TUBE_DIAMETER = 4 * SCALE;
 
 //door
-export const DOOR_FRAME_WIDTH = 10 * SCALE;
+export const DOOR_FRAME_WIDTH = 6 * SCALE;
 export const DOOR_FRAME_DEPTH = 20 * SCALE;
+export const DOOR_PROPORTION_OCTAGON_FRAME = 0.8;
 
 //riels
 export const RIELS_SIDE = 4 * SCALE;

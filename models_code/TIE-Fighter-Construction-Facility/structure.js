@@ -98,15 +98,15 @@ function buildDiagonalWalls(width,height,depth,proportion,heightSegments,depthSe
 }
 
 
-function buildExterior(width,height,depth,proportion,widthSegments,heigthSegments,depthSegments){
+function buildExterior(width,height,depth,proportion,proportion_exterior_heigth,widthSegments,heigthSegments,depthSegments){
     
     const octogonalSegments = Math.max(8 , Math.ceil(widthSegments / 8) * 8);
     
     const dx = width * (1 - proportion) / 2;
     const dy = height * (1 - proportion);
 
-    const back           = buildOctogonalPlane(width,2*height,proportion,octogonalSegments,heigthSegments);
-    const wall1          = buildPlane(depth,height,depthSegments,heigthSegments);
+    const back           = buildOctogonalPlane(width,proportion_exterior_heigth*height,proportion,octogonalSegments,heigthSegments);
+    const wall1          = buildPlane(depth,height * proportion_exterior_heigth * proportion,depthSegments,heigthSegments);
     const floor          = buildPlane(width*proportion,depth,widthSegments,depthSegments);
     const roof           = buildPlane(width*proportion,depth,widthSegments,depthSegments);
     const wall2 = wall1.clone();
@@ -116,13 +116,13 @@ function buildExterior(width,height,depth,proportion,widthSegments,heigthSegment
     floor.rotateX(Math.PI/2);
     roof.rotateX(Math.PI/2);
     
-    back.translate(0,0,-depth/2-0.001);
-    wall1.translate(-width/2 - 0.001,0,0);
-    wall2.translate(width/2 + 0.001,0,0);
-    floor.translate(0,-height,0);
-    roof.translate(0,height,0);
+    back.translate(0,0,-depth/2-0.01);
+    wall1.translate(-width/2 - 0.01,0,0);
+    wall2.translate(width/2 + 0.01,0,0);
+    floor.translate(0,-height*proportion_exterior_heigth/2,0);
+    roof.translate(0,height*proportion_exterior_heigth/2,0);
 
-    const diagonal_walls = buildDiagonalWalls(width,height*2,depth,proportion,heigthSegments,depthSegments);
+    const diagonal_walls = buildDiagonalWalls(width,height * proportion_exterior_heigth,depth,proportion,heigthSegments,depthSegments);
 
     return BufferGeometryUtils.mergeGeometries(
                 [back,wall1,wall2,floor,roof,...diagonal_walls],
@@ -135,33 +135,39 @@ function buildExterior(width,height,depth,proportion,widthSegments,heigthSegment
 //  DOOR
 //----------
 
-function buildOctogonalRing(width,heigth,proportion,scaleInternWidth,scaleInternHeight,heightSegments,widthSegments){
-    const vertex = getOrtogonalVertex(width,heigth,proportion);
+function buildOctogonalRing(width,heigth,proportion,interProportion,scaleInternWidth,scaleInternHeight,heightSegments,widthSegments){
+
+    const vertexExt = getOrtogonalVertex(width,heigth,proportion);
+
+    const vertexInt = getOrtogonalVertex(width * scaleInternWidth,heigth * scaleInternHeight,interProportion);
 
     const geometry = new ParametricGeometry(
-        function (u,v,target){
+        function(u,v,target){
+
             let side = Math.floor(u*8);
             if (side == 8)
                 side = 7;
+
             let next = side+1;
             if (next == 8)
                 next = 0;
 
-            const dx = vertex[next].x - vertex[side].x;
-            const dy = vertex[next].y - vertex[side].y;
-
             const t = 8*u - side;
 
-            const x = vertex[side].x + t * (vertex[next].x - vertex[side].x);
-            const y = vertex[side].y + t * (vertex[next].y - vertex[side].y);
+            const xExt = vertexExt[side].x + t * (vertexExt[next].x - vertexExt[side].x);
+            const yExt = vertexExt[side].y + t * (vertexExt[next].y - vertexExt[side].y);
 
-            const factorX = scaleInternWidth + (1 - scaleInternWidth) * v;
-            const factorY = scaleInternHeight + (1 - scaleInternHeight) * v;
+            const xInt = vertexInt[side].x + t * (vertexInt[next].x - vertexInt[side].x);
+            const yInt = vertexInt[side].y + t * (vertexInt[next].y - vertexInt[side].y);
 
-            target.set(x * factorX, y * factorY, 0);
+            const x = xInt + (xExt - xInt) * v;
+            const y = yInt + (yExt - yInt) * v;
+
+            target.set(x,y,0);
+
         },widthSegments,heightSegments
-    )
-    //uv
+    );
+
     return geometry;
 }
 
@@ -192,23 +198,27 @@ function buildOctogonalDepth(width,heigth,proportion,depth,heightSegments,widthS
     return geometry;
 }
 
-function buildOctogonalToroid(width,height,proportion,depth,internWidth,heightSegments,widthSegments){
+function buildOctogonalToroid(width,height,proportion,proportion_exterior_heigth,depth,internWidth,interProportion,heightSegments,widthSegments){
+
     const octogonalSegments = Math.max(8,Math.ceil(widthSegments / 8) * 8);
+
     const scaleInternWidth = 1 - 2 * internWidth / width;
-    const scaleInternHeight = 1 - 2 * internWidth / (height);
-    
-    const back = buildOctogonalRing(width,height*2,proportion,scaleInternWidth,scaleInternHeight,heightSegments,octogonalSegments);
-    const front = buildOctogonalRing(width,height*2,proportion,scaleInternWidth,scaleInternHeight,heightSegments,octogonalSegments);
-    const border_ext = buildOctogonalDepth(width,height*2,proportion,depth,heightSegments,octogonalSegments);
-    const border_int = buildOctogonalDepth(width*scaleInternWidth,height*scaleInternHeight*2,proportion,depth,heightSegments,octogonalSegments);
+    const scaleInternHeight = (height - 2 * internWidth) / (height * proportion_exterior_heigth);
+
+    const back = buildOctogonalRing(width,height*proportion_exterior_heigth,proportion,interProportion,scaleInternWidth,scaleInternHeight,heightSegments,octogonalSegments);
+    const front = buildOctogonalRing(width,height*proportion_exterior_heigth,proportion,interProportion,scaleInternWidth,scaleInternHeight,heightSegments,octogonalSegments);
+
+    const border_ext = buildOctogonalDepth(width,height*proportion_exterior_heigth,proportion,depth,heightSegments,octogonalSegments);
+
+    const border_int = buildOctogonalDepth(width*scaleInternWidth,height*proportion_exterior_heigth*scaleInternHeight,interProportion,depth,heightSegments,octogonalSegments);
 
     back.translate(0,0,-depth/2);
     front.translate(0,0,depth/2);
 
     return BufferGeometryUtils.mergeGeometries(
-                [back,front, border_ext, border_int],
-                false
-            );
+        [back,front,border_ext,border_int],
+        false
+    );
 }
 
 
@@ -222,6 +232,7 @@ export function buildStructure(Segments){
     const height = measures.TOTAL_HEIGHT;
     const depth = measures.TOTAL_DEPTH;
     const proportion = measures.TOTAL_PROPORTION;
+    const proportion_exterior_heigth = measures.TOTAL_EXTERIOR_HEIGTH_PROPORTION;
 
     //utilizo cantidad de segmentos proporcionales al tamaño
     const totalArea = 4 * (height*width + height*depth + width*depth);
@@ -266,19 +277,31 @@ export function buildStructure(Segments){
     floor.rotateX(-Math.PI/2);
 
     //EXTERIOR
-    const exterior_geometry = buildExterior(width,height,depth,proportion,widthSegments,heightSegments,depthSegments);
+    const exterior_geometry = buildExterior(width,height,depth,proportion,proportion_exterior_heigth,widthSegments,heightSegments,depthSegments);
     const material_exterior = new THREE.MeshBasicMaterial({
         color: 0x777777,
         side: THREE.DoubleSide});
     const exterior = new THREE.Mesh(exterior_geometry,material_exterior);
 
     //FRAME DOOR
-    const frame_door_geometry = buildOctogonalToroid(width,height,proportion,measures.DOOR_FRAME_DEPTH,measures.DOOR_FRAME_WIDTH,heightSegments,widthSegments);
+    const frame_door_geometry = buildOctogonalToroid(width,height,proportion,proportion_exterior_heigth,measures.DOOR_FRAME_DEPTH,measures.DOOR_FRAME_WIDTH,measures.DOOR_PROPORTION_OCTAGON_FRAME,
+        heightSegments,widthSegments);
     const material_frame_door = new THREE.MeshBasicMaterial({
-        color: 0x444477,
+        color: 0x777777,
         side: THREE.DoubleSide});
     const frame_door = new THREE.Mesh(frame_door_geometry,material_frame_door);
+
     //DOOR
+    const scaleInternWidth = 1 - 2 * measures.DOOR_FRAME_WIDTH / width-0.01;
+    const scaleInternHeight =(height - 2 * measures.DOOR_FRAME_WIDTH) / (height * proportion_exterior_heigth) - 0.01;
+    const octogonalSegments = Math.max(8,Math.ceil(heightSegments / 8) * 8);
+
+    const door_geometry = buildOctogonalDepth(width * scaleInternWidth ,proportion_exterior_heigth*height * scaleInternHeight,measures.DOOR_PROPORTION_OCTAGON_FRAME
+        , measures.DOOR_FRAME_DEPTH,depthSegments,octogonalSegments);
+    const material_door = new THREE.MeshBasicMaterial({
+        color: 0x111111,
+        side: THREE.DoubleSide});
+    const door = new THREE.Mesh(door_geometry,material_door);
 
     //GROUPING
     const structure = new THREE.Group();
@@ -289,6 +312,7 @@ export function buildStructure(Segments){
     structure.add(floor);
     structure.add(exterior);
     structure.add(frame_door);
+    structure.add(door)
 
     back.position.z  = -depth/2;
     wall1.position.x = -width/2;
@@ -296,6 +320,7 @@ export function buildStructure(Segments){
     floor.position.y = -height/2;
     roof.position.y  =  height/2;
     frame_door.position.z = (depth+measures.DOOR_FRAME_DEPTH)/2;
+    door.position.z=(depth+measures.DOOR_FRAME_DEPTH)/2;
 
     return structure;
 }
