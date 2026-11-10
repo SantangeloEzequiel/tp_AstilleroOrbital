@@ -9,7 +9,7 @@ import * as atlas_uv from './atlas_uv.js'
 
 //Medidas
 export const LENGTH = 280 * SCALE; //2/3 cockpit - 1/3 tubes
-export const DIAMETER_CENTER = 70 * SCALE;
+export const DIAMETER_CENTER = 65 * SCALE;
 const DIAMETER_EXT = 24 * SCALE;
 export const DIAMETER_COCKPIT = 60 * SCALE;
     
@@ -19,6 +19,7 @@ function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiame
     const totalLength = radius + length;
     const maxRadius = radius * pronunciation + extDiameter;
 
+    //la siguiente curva esta hecha a partir de 3 valores, los demas vertices se fueron agregando pragmaticamente
     const catmull_curve = new THREE.CatmullRomCurve3([
         new THREE.Vector3(-totalLength, extDiameter, 0),
         new THREE.Vector3(-totalLength * 0.85, extDiameter + (maxRadius-extDiameter)*0.25, 0),

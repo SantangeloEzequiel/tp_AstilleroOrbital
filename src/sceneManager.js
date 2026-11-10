@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
 import { buildShip} from '../models_code/buildTieFighter.js';
+import { buildHangar} from '../models_code/buildHangar.js';
 
 const SCALE = 0.01; //TIE FIGTHER
 
@@ -66,10 +67,11 @@ export class SceneManager {
 		
 		//Hangar
 		
-		
+		const hangar = buildHangar();
+		scene.add(hangar);
 		
 		//NAVES
-		
+		/*
 		this.ships = [];
 		this.ships[0]=buildShip(1,1);
 		//anido la camara a ship1
@@ -83,7 +85,7 @@ export class SceneManager {
 		this.ships[2].position.set(-5,0,0);
 
 		for(let number in this.ships)
-			scene.add(this.ships[number]);
+			scene.add(this.ships[number]);*/
 	}
 
 	moveShip(keys) {
