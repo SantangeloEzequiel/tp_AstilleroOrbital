@@ -1,4 +1,4 @@
-import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+import * as measures from './blueprints/measures.js';
 
 
 import * as THREE from 'three';
@@ -8,10 +8,10 @@ import * as atlas_uv from './atlas_uv.js'
 
 
 //Medidas
-export const LENGTH = 280 * SCALE; //2/3 cockpit - 1/3 tubes
-export const DIAMETER_CENTER = 65 * SCALE;
-const DIAMETER_EXT = 24 * SCALE;
-export const DIAMETER_COCKPIT = 60 * SCALE;
+export const LENGTH = measures.FUSELAGE_LENGTH; //2/3 cockpit - 1/3 tubes
+export const DIAMETER_CENTER = measures.FUSELAGE_DIAMETER_CENTER;
+const DIAMETER_EXT = measures.FUSELAGE_DIAMETER_EXT;
+export const DIAMETER_COCKPIT = measures.COCKPIT_DIAMETER;
     
 
 function buildSphereFlattened(radius, angle, pronunciation=1, length=0, extDiameter, radialSegments, heightSegments){

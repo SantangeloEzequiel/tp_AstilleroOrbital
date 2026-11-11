@@ -1,4 +1,4 @@
-import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+import * as measures from './blueprints/measures.js';
 
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
@@ -7,12 +7,12 @@ import * as atlas_uv from './atlas_uv.js'
 
 
 //Medidas
-const HEIGHT= 310 * SCALE;
-const WIDTH= 270 * SCALE;
-const SIDE_LENGTH = 170 *SCALE;
-const FRAME_DIAMETER = 8 * SCALE; //El diametro del borde de tubo del hexagono
-const PYLONS_HEIGHT = 100 * SCALE;
-const PYLONS_WIDTH = 80 * SCALE;
+const HEIGHT= measures.WINGS_HEIGHT;
+const WIDTH= measures.WING1_WIDTH;
+const SIDE_LENGTH = measures.WING1_SIDE_LENGTH;
+const FRAME_DIAMETER = measures.WINGS_FRAME_DIAMETER; //El diametro del borde de tubo del hexagono
+const PYLONS_HEIGHT = measures.WINGS_PYLONS_HEIGHT;
+const PYLONS_WIDTH = measures.WINGS_PYLONS_WIDTH;
 
 
 

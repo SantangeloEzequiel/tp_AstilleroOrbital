@@ -1,4 +1,4 @@
-import { SCALE_TIE_FIGHTER as SCALE } from '../constants.js';
+import * as measures from './blueprints/measures.js';
 
 import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
@@ -9,14 +9,14 @@ import * as atlas_uv from './atlas_uv.js'
 
 // (En vez de un hexagono un circulo)
 
+
 //Medidas
-const EXTERIOR_DIAMETER = (65 / 2) * SCALE; // half of cockpit diameter
-const DEPTH = 12 * SCALE;
+const EXTERIOR_DIAMETER = measures.ENGINES_EXTERIOR_DIAMETER; // half of cockpit diameter
+const DEPTH = measures.ENGINES_DEPTH;
 
 //PROPORTIONS
-const CENTER_DIAMETER = EXTERIOR_DIAMETER/2;
-const HEXAGON_DIAMETER = CENTER_DIAMETER * (1/2);
-
+const CENTER_DIAMETER = measures.ENGINES_CENTER_DIAMETER;
+const HEXAGON_DIAMETER = measures.ENGINES_HEXAGON_DIAMETER;
 
 
 //********************* */
