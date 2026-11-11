@@ -48,7 +48,7 @@ function setupThreeJs() {
 	}
 	//Camara orbital
 	controls_orbital = new OrbitControls(cameras[CAMERA.ORBITAL], renderer.domElement);
-	cameras[CAMERA.ORBITAL].position.set(5, 5, 10);
+	cameras[CAMERA.ORBITAL].position.set(0, 0, 1);
 
 	controls_orbital.target.set(0, 0, 0);
 	controls_orbital.enableDamping = false;
