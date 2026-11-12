@@ -9,16 +9,17 @@ import { SCALE_TIE_FIGHTER } from './constants';
 import {buildStructure} from './TIE-Fighter-Construction-Facility/structure.js';
 import {buildColumns} from './TIE-Fighter-Construction-Facility/columns.js';
 import {buildRiels} from './TIE-Fighter-Construction-Facility/riels.js';
+import {buildRielsSupport} from './TIE-Fighter-Construction-Facility/riels_suports.js';
 
 export function buildHangar(){
 
-    const structure = buildStructure(180,180);
-    
-
     const hangar = new THREE.Group();
 
+    //estructura
+    const structure = buildStructure(180,180);
     hangar.add(structure);
 
+    //rieles
     for(let i = 0 ; i < measures.TOP_RIELS_NUMBER; i++){
         const riel = buildRiels(180);
         const depth = -measures.TOTAL_DEPTH/2+ i * measures.TOTAL_DEPTH/(measures.TOP_RIELS_NUMBER - 1);
@@ -26,6 +27,7 @@ export function buildHangar(){
         hangar.add(riel);
     }
 
+    //columnas
     for(let i = 0 ; i < measures.LATERAL_COLUMNS_PER_SIDE; i++){
         const column = buildColumns(180);;
         const depth = -measures.TOTAL_DEPTH/2+ i * measures.TOTAL_DEPTH/(measures.LATERAL_COLUMNS_PER_SIDE - 1);
@@ -38,6 +40,10 @@ export function buildHangar(){
         hangar.add(column);
         hangar.add(column_clone);
     }
+
+    //soportes
+    const suport = buildRielsSupport(120);
+    //hangar.add(suport);
 
     return hangar;
 }

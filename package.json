@@ -9,9 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dat.gui": "^0.7.9",
+    "gui": "^0.15.6",
     "three": "^0.162.0"
   },
   "devDependencies": {
     "vite": "^8.0.9"
+  },
+  "allowScripts": {
+    "gui@0.15.6": true
   }
 }

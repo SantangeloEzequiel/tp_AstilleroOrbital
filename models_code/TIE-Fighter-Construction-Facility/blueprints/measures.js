@@ -32,3 +32,8 @@ export const DOOR_PROPORTION_OCTAGON_FRAME = 0.9;
 //riels
 export const RIELS_SIDE = 2 * SCALE;
 export const RIELS_ESPESOR = 0.1 * SCALE
+
+//riels suport
+export const SUPPORT_ESPESOR = 0.2 * SCALE;
+export const SUPPORT_CONECTOR_DIAMETER = 1 * SCALE;
+export const SUPPORT_ARM_HEIGHT = 1 * SCALE;

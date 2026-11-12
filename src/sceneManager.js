@@ -60,7 +60,7 @@ export class SceneManager {
 		    });
 		
 		    const planet = new THREE.Mesh(sphere_planet, material_planet);
-			planet.position.set(-200,-200,-200);
+			planet.position.set(-100, -70 ,300);
 		    scene.add(planet);
 
 		// SCRIPT

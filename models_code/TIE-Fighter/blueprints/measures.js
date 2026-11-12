@@ -1,4 +1,4 @@
-import {SCALE_HANGAR as SCALE} from '../../constants.js';
+import {SCALE_TIE_FIGHTER as SCALE} from '../../constants.js';
 
 //FUSELAGE
 export const FUSELAGE_LENGTH = 280 * SCALE; //2/3 cockpit - 1/3 tubes
@@ -25,8 +25,8 @@ export const WIDTH3_WIDTH = 280 * SCALE;
 export const ENGINES_EXTERIOR_DIAMETER = (65 / 2) * SCALE; // half of cockpit diameter
 export const ENGINES_DEPTH = 12 * SCALE;
 //proportions
-export const ENGINES_CENTER_DIAMETER = EXTERIOR_DIAMETER/2;
-export const ENGINES_HEXAGON_DIAMETER = CENTER_DIAMETER * (1/2);
+export const ENGINES_CENTER_DIAMETER = ENGINES_EXTERIOR_DIAMETER/2;
+export const ENGINES_HEXAGON_DIAMETER = ENGINES_CENTER_DIAMETER * (1/2);
 
 
 //UTILS
