@@ -3,6 +3,8 @@ import * as HANGAR_measures from '../models_code/TIE-Fighter-Construction-Facili
 import * as TIE_measures from '../models_code/TIE-Fighter/blueprints/measures.js';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { Timer } from 'three/addons/misc/Timer.js';
+
 
 //Models hangar
 import {buildStructure} from '../models_code/TIE-Fighter-Construction-Facility/structure.js';
@@ -17,6 +19,8 @@ import { createTieFuselage, DIAMETER_CENTER } from '../models_code/TIE-Fighter/f
 import { createTieEngines as createTieEngines_1} from '../models_code/TIE-Fighter/engines_1.js';
 import { createTieEngines as createTieEngines_2} from '../models_code/TIE-Fighter/engines_2.js';
 import { createTieCockpit as createTieCockpit} from '../models_code/TIE-Fighter/cockpit.js';
+//model grua
+import { buildGrua } from './buildGrua,js';
 
 
 
@@ -26,33 +30,22 @@ export class AnimateScene {
         this.scene = scene;
         this.cameras = cameras;
 
+        //timers
+        const timer = new Timer();
+        this.timer = timer;
+        this.elapsed_time=0;
+
         //BUILD PLATAFORM
-        const plataform = new THREE.Group();
-        const side_length = 2;
+        const plataform_fuselage = new THREE.Group();
+        const side_length = 3.2;
+        this.side_length = side_length;
         
         //DOOR
         const door_depth = side_length;
-        const door_width = door_depth/2;
-        const door_geometry = buildBox(door_width,0.1,door_depth,100,100);
+        const door_geometry = buildBox(door_depth,0.1,door_depth,100,100);
         const door_material = new THREE.MeshBasicMaterial({color: 0x111111, side: THREE.DoubleSide});
-        const door_1 = new THREE.Mesh(door_geometry,door_material);
-        
-        const door_2 = door_1.clone();
-        
-        door_1.position.x = door_width / 2;
-        door_2.position.x = -door_width / 2;
-        
-        const pivot1 = new THREE.Group();
-        const pivot2 = new THREE.Group();
-
-        pivot1.add(door_1);
-        pivot2.add(door_2);
-
-        pivot1.position.x = -door_width;
-        pivot2.position.x = door_width;
-
-        pivot1.rotation.z =  Math.PI / 4 ;
-        pivot2.rotation.z = - Math.PI / 4 ;
+        const door = new THREE.Mesh(door_geometry,door_material);
+        door.translateY(-0.1);
 
         //CONTAINER
         const container_geometry = buildBoxWithoutRoof(side_length,HANGAR_measures.TOTAL_HEIGHT/4,side_length,120,120);
@@ -60,30 +53,188 @@ export class AnimateScene {
         const container = new THREE.Mesh(container_geometry,container_material);
         container.translateY(-HANGAR_measures.TOTAL_HEIGHT/8);
 
+        //PISTON
+        const piston_geometry = buildBox(side_length/2,0.1,side_length/2,120,120);
+        const piston_material = new THREE.MeshBasicMaterial({color: 0x441111, side: THREE.DoubleSide});
+        const piston = new THREE.Mesh(piston_geometry,piston_material);
+        piston.translateY(-(HANGAR_measures.TOTAL_HEIGHT/4 - 0.1));
+
+        //WINGS
+        this.wings = [];
+        this.wings.push(model_createTieWing_1(side_length*2));
+        
+
+        //FUSELAGE
+        this.fuselage = [];
+        this.fuselage.push(model_fusesalge());
+        
+        
+
+        //PLATAFORM 
+        plataform_fuselage.add(door);
+        plataform_fuselage.add(container);
+        
+
+        //PLATAFORM WINGS
+        const plataform_wings = plataform_fuselage.clone();
+        plataform_wings.translateX(2*side_length);
+        
+
+        //PLATAFORM GRUA
+        const plataform_grua = plataform_fuselage.clone();
+        plataform_grua.scale.x=3;
+        plataform_grua.translateZ(- side_length * 1.5);
+        plataform_grua.translateX(side_length);
+        
+
+        //GRUA
+        
+        const GRUA = buildGrua();
+        GRUA.translateZ(-side_length*1.5);
+        GRUA.translateX(side_length);
+        GRUA.translateY(-(HANGAR_measures.TOTAL_HEIGHT/4));
+
+        //SCENE
+
+        scene.add(GRUA)
+
+        scene.add(plataform_fuselage);
+        scene.add(plataform_wings);
+        scene.add(plataform_grua);
+        scene.add(this.wings[0]);
+        piston.add(this.fuselage[0]);
+        scene.add(piston);
 
 
-        
-        
-        
-        
-        //Grouping
-        plataform.add(pivot1);
-        plataform.add(pivot2);
-        plataform.add(container);
-        scene.add(plataform);
+        // Guardo referencias 
+        this.door_fuselage = door;
+        this.piston = piston;
+        this.door_wings = plataform_wings.children[0];
+        this.door_grua = plataform_grua.children[0];
+        this.grua = GRUA;
+
+        //constantes de calculo
+        this.ala_agarrada = false;
     }
 
     animate() {
-        
+        //Dado que hay una pausa, el timer de animate es diferente al de main
+        let this_animation_time,total_animation_time=0;
 
-        // Animaciones de los objetos
-        // Ejemplo:
         
-        pivot1.rotation.z =  Math.PI / 4 ;
-        pivot2.rotation.z = - Math.PI / 4 ;
+        //GRUA
+        const first_axis = this.grua.getObjectByName("first_axis");
+        const second_axis = this.grua.getObjectByName("second_axis");
+        const third_axis = this.grua.getObjectByName("third_axis");
+        const wrist = this.grua.getObjectByName("wrist");
+
+        //TIMER
+        this.timer.update();
+        this.elapsed_time+= this.timer.getDelta();
+        const animation_time= this.elapsed_time;
+        const time = this.timer.getDelta();
+
+        //SE ABREN LAS PUERTAS
+
+        this_animation_time = 3;
+        if(animation_time<total_animation_time+this_animation_time){
+            const speed = this.side_length / this_animation_time;
+            this.door_wings.translateX(-speed * time );
+            this.door_fuselage.translateX(-speed * time);
+            this.door_grua.translateX(-speed * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //SUBE EL FUSELAJE Y LA GRUA
+
+        this_animation_time = 3; 
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/8 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
+            this.piston.translateY(speed * time );
+        }        
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/8 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
+            this.grua.translateY(speed * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //GRUA SE ACOMODA A SU POSICION DEFAULT
+
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (-Math.PI) / this_animation_time;
+            second_axis.rotateX(speed * time );
+            third_axis.rotateX(speed/2 * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        
+        //GRUA SE MUEVE HACIA EL PRIMER ALA
+
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (this.side_length) / this_animation_time;
+            this.grua.translateX(speed * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //GRUA AGARRA EL PRIMER ALA
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateX(speed/2 * time );
+            second_axis.rotateX(speed/2 * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //GRUA SE ACOMODA A SU POSICION DEFAULT
+
+        this_animation_time = 2;
+        if(animation_time >= total_animation_time && this.ala_agarrada == false &&animation_time < total_animation_time +this_animation_time){
+            wrist.attach(this.wings[0]); //se ejecuta una sola vez
+            this.ala_agarrada = true;
+        }
+            
+
+        
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (-Math.PI) / this_animation_time;
+            first_axis.rotateX(speed/2 * time );
+            second_axis.rotateX(speed/2 * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        // ENCASTRE DEL PRIMER ALA
+        
+        //SUBE SEGUNDA ALA
+
+        //ENCASTRE DE SEGUNDA ALA
+
+        //VUELA LA NAVE
+
+        //BAJA EL MECANISMO
+
+        //SE CIERRAN LAS PUERTAS
+
+        
     }
 }
 
+//MODELS
+function model_createTieWing_1(x){
+    const wing = createTieWings_1()
+    wing.rotateX(-Math.PI/2)
+    wing.translateZ( - TIE_measures.WINGS_FRAME_DIAMETER - 0.5);
+    wing.translateY(x);
+    return wing
+}
+
+function model_fusesalge(){
+    const fuselage = createTieFuselage()
+    fuselage.scale.y=-1;
+    fuselage.translateZ(- TIE_measures.FUSELAGE_DIAMETER_CENTER - 0.3);
+    return fuselage;
+}
 
 //---------------
 //    UTILS

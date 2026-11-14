@@ -87,7 +87,9 @@ function onResize() {
 	renderer.setSize(container.offsetWidth, container.offsetHeight);
 }
 
-
+//-----------------------------------------------------
+//					ANIMATE
+//-----------------------------------------------------
 
 import { Timer } from 'three/addons/misc/Timer.js';
 const timer = new Timer();
@@ -98,8 +100,8 @@ function animate() {
 
 	//ANIMATE SCRIPT
 
-	if (isAnimating) {
-        //animateScene.update(timer.getDelta());
+	if (isAnimating) { 
+		animateScene.animate();
     }
 
 	timer.update();
@@ -117,7 +119,35 @@ function animate() {
 	renderer.render(scene, cameras[activeCamera]);
 }
 
+//--------------------
+//   	MAIN
+//-------------------
 
+setupThreeJs();
+sceneManager = new SceneManager(scene,cameras);
+animateScene = new AnimateScene(scene,cameras);
+createMenu();
+animate();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//---------------------------------------------------------------------------
+//								MENU
+//---------------------------------------------------------------------------
 function createMenu() {
 	const gui = new dat.GUI({ width: 300 });
 
@@ -194,9 +224,3 @@ function createMenu() {
 	gui.add(params, 'anguloAntebrazo', 0, 90).step(0.001);
 	gui.add(params, 'anguloPala', 0, 90).step(0.001);*/
 }
-
-setupThreeJs();
-sceneManager = new SceneManager(scene,cameras);
-animateScene = new AnimateScene(scene,cameras);
-createMenu();
-animate();
