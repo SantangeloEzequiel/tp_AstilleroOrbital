@@ -71,7 +71,7 @@ export class SceneManager {
 		scene.add(hangar);
 		
 		//NAVES
-		/*
+		
 		this.ships = [];
 		this.ships[0]=buildShip(1,1);
 		//anido la camara a ship1
@@ -85,7 +85,7 @@ export class SceneManager {
 		this.ships[2].position.set(-5,0,0);
 
 		for(let number in this.ships)
-			scene.add(this.ships[number]);*/
+			scene.add(this.ships[number]);
 	}
 
 	moveShip(keys) {

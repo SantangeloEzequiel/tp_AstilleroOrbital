@@ -95,7 +95,7 @@ export class AnimateScene {
         GRUA.translateY(-(HANGAR_measures.TOTAL_HEIGHT/4));
 
         //SCENE
-
+        /*
         scene.add(GRUA)
 
         scene.add(plataform_fuselage);
@@ -103,7 +103,7 @@ export class AnimateScene {
         scene.add(plataform_grua);
         scene.add(this.wings[0]);
         piston.add(this.fuselage[0]);
-        scene.add(piston);
+        scene.add(piston);*/
 
 
         // Guardo referencias 

@@ -391,8 +391,8 @@ export function createTieWings(){
     const border_geometry = buildBordersGeometry(HEIGHT,WIDTH,Math.PI/4,FRAME_DIAMETER,120,120)
     const material_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical
-    });
+        //map: atlas_uv.tiraVertical
+    color: 0x777777,});
 
     const wing_border = new THREE.Mesh(border_geometry, material_border);
 
@@ -407,8 +407,8 @@ export function createTieWings(){
     });
     const material_pylon_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical
-    });
+        //map: atlas_uv.tiraVertical
+    color: 0x777777,});
 
     const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
     const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);

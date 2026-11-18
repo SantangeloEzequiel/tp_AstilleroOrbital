@@ -274,7 +274,7 @@ export function createTieWings(){
     
     const material_hexagonal_curve = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.alaDerPanelesNegros
+        map: atlas_uv.PanelNegroGrande
     });
 
     const wing_body = new THREE.Mesh(hexagonal_curve, material_hexagonal_curve);
@@ -284,8 +284,8 @@ export function createTieWings(){
     
     const material_hexagonal_curve_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical
-    });
+        //map: atlas_uv.tiraVertical
+    color: 0x777777,});
 
     const wing_boder = new THREE.Mesh(hexagon_curve_border, material_hexagonal_curve_border);
 
@@ -300,8 +300,8 @@ export function createTieWings(){
     });
     const material_pylon_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical
-    });
+        //map: atlas_uv.tiraVertical
+    color: 0x777777,});
 
     const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
     const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);

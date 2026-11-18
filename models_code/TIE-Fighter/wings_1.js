@@ -234,21 +234,24 @@ export function createTieWings(){
     const hexagon = buildHexagon(20,60,WIDTH,HEIGHT,SIDE_LENGTH);
     const material_hexagon = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        map: atlas_uv.alaDerPanelesNegros});
+        map: atlas_uv.PanelNegroGrande});
     const wing_hexagon = new THREE.Mesh(hexagon, material_hexagon);
 
     //wing_hexagon_border
     const hexagon_border = buildHexagonBorders(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,20,120);
     const material_border = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical});
+        //map: atlas_uv.tiraVertical
+        color: 0x777777, 
+        });
     const wing_hexagon_border = new THREE.Mesh(hexagon_border, material_border);
     
     //wing_triangules
     const triangules = buildTriangulesToHexagonVertex(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,60,120);
     const material_triangules = new THREE.MeshBasicMaterial({ 
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical});
+        //map: atlas_uv.tiraVertical
+        color: 0x777777,});
     const wing_triangules = new THREE.Mesh(triangules, material_triangules);
 
     // wing_pylon
@@ -260,13 +263,13 @@ export function createTieWings(){
 
     const material_pylon = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.alaIzqHexagonoCentro
-    });
+        //map: atlas_uv.alaIzqHexagonoCentro
+    color: 0x337788,});
 
     const material_pylon_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.tiraVertical
-    });
+        //map: atlas_uv.tiraVertical
+    color: 0x777777});
 
     const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
     const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);
@@ -285,12 +288,14 @@ export function createTieWings(){
     wing_triangules.translateY(-HEIGHT/2);
 
     wing.add(pylon);
+    /*
     wing.add(pylon_border);
 
     pylon_border.translateX(-PYLONS_WIDTH/2);
     pylon_border.translateY(-PYLONS_HEIGHT/2);
     
     pylon_border.translateZ(-FRAME_DIAMETER);
+    */
     pylon.translateZ(-2 * FRAME_DIAMETER);
     
     wing.rotateY(-Math.PI/2);

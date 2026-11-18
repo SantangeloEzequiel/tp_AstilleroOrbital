@@ -171,14 +171,15 @@ export function createTieFuselage() {
     );
 
     const material_sphere = new THREE.MeshBasicMaterial({
-    map: atlas_uv.panelesCabinaMitades});
+    map: atlas_uv.panelFuselage});
     const fuselage_center = new THREE.Mesh(sphere_flattened, material_sphere);
     
     
     const tube = buildTube(tubeLength, DIAMETER_EXT, 64, 64);
-    atlas_uv.soportesBrazo.wrapT = THREE.RepeatWrapping            
+    atlas_uv.panelBrazos.wrapT = THREE.RepeatWrapping            
     const material_tube = new THREE.MeshBasicMaterial({ 
-            map: atlas_uv.soportesBrazo});
+            map: atlas_uv.panelBrazos
+            });
     
     const tube1 = new THREE.Mesh(tube, material_tube);
     const tube2 = new THREE.Mesh(tube, material_tube);
@@ -205,7 +206,7 @@ export function createTieFuselage() {
     const cockpit = new THREE.Mesh(semi_sphere,material_cockpit);
     cockpit.rotateX(Math.PI/2);
     fuselage.add(cockpit);
-    cockpit.translateZ(((DIAMETER_CENTER + DIAMETER_COCKPIT)/2));
+    cockpit.translateZ(DIAMETER_CENTER-0.1);
 
     
 
