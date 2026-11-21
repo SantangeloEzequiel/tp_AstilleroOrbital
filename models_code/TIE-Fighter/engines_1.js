@@ -102,7 +102,8 @@ export function createTieEngines(){
     const engine_center_geometry = buildEngineCenterGeometry(CENTER_DIAMETER/2,HEXAGON_DIAMETER/2,120,120);
     const material_center = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.piezasRojas
+        //map: atlas_uv.piezasRojas
+        color: 0x777777,
     });
     const engine_center = new THREE.Mesh(engine_center_geometry, material_center);
 

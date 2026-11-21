@@ -27,6 +27,18 @@ import panelCabinaUrl
 import panelBrazosUrl
     from './texturas/Brazos.png';    
 
+
+import bordesAlaUrl
+    from './texturas/BordesAla.png';    
+
+import borderSeccionUrl
+    from './texturas/BorderSeccion.png'    
+
+import pylonAdentroUrl
+    from './texturas/pylon_adentro.png'
+
+import pylonAdelanteUrl
+    from './texturas/pylon_adelante.png'    
 // ==========================================
 // TEXTURE LOADER
 // ==========================================
@@ -77,3 +89,31 @@ export const aroCabinaNegro =
 
 export const panelBrazos =
     loadTexture(panelBrazosUrl);
+
+export const bordesAla =
+    loadTexture(bordesAlaUrl); 
+    
+bordesAla.anisotropy = 16;
+bordesAla.magFilter = THREE.NearestFilter;
+bordesAla.minFilter = THREE.NearestMipmapNearestFilter;
+bordesAla.generateMipmaps = true;
+bordesAla.wrapS = THREE.RepeatWrapping;
+bordesAla.wrapT = THREE.ClampToEdgeWrapping;
+bordesAla.repeat.set(1,1);
+bordesAla.needsUpdate = true;
+
+export const borderSeccion =
+    loadTexture(borderSeccionUrl);
+
+borderSeccion.anisotropy = 5;
+borderSeccion.wrapS = THREE.RepeatWrapping;
+borderSeccion.wrapT = THREE.ClampToEdgeWrapping;
+borderSeccion.repeat.set(5,1);
+borderSeccion.needsUpdate = true;
+
+export const pylonInterior =
+    loadTexture(pylonAdentroUrl);
+
+
+export const pylonExterior =
+    loadTexture(pylonAdelanteUrl);    

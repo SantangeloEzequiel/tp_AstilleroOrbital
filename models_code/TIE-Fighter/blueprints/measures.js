@@ -9,7 +9,7 @@ export const COCKPIT_FRAME_WIDTH = 4 * SCALE;
 
 //WINGS
 export const WINGS_HEIGHT= 310 * SCALE;
-export const WINGS_FRAME_DIAMETER = 8 * SCALE; //El diametro del borde del ala
+export const WINGS_FRAME_DIAMETER = 6 * SCALE; //El diametro del borde del ala
 export const WINGS_PYLONS_HEIGHT = 100 * SCALE;
 export const WINGS_PYLONS_WIDTH = 80 * SCALE;
 export const WINGS_DEPTH = 50  * SCALE; 
@@ -19,7 +19,7 @@ export const WING1_SIDE_LENGTH = 170 * SCALE
 //wing 2
 export const WING2_WIDTH = 200 * SCALE
 //wing 3
-export const WIDTH3_WIDTH = 280 * SCALE;
+export const WING3_WIDTH = 280 * SCALE;
 
 //ENGINES
 export const ENGINES_EXTERIOR_DIAMETER = (65 / 2) * SCALE; // half of cockpit diameter

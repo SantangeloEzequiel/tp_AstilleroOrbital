@@ -50,6 +50,41 @@ function buildHexagonalCurve(height,width,depth,heightSegments,widthSegments){
 //      PYLON
 //******************* */ 
 
+//Deforma el pylon para que siga la misma curva que el cuerpo del ala.
+//Se aplica antes de rotateY; el eje Z local se convierte en -X global.
+function curvePylonToWing(geometry, yOffset = 0){
+    const catmull_curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-DEPTH / 2, -HEIGHT / 2, 0),
+        new THREE.Vector3( DEPTH / 2, 0, 0),
+        new THREE.Vector3(-DEPTH / 2, HEIGHT / 2, 0)
+    ], false, 'catmullrom', 0.4);
+
+    const position = geometry.attributes.position;
+
+    for(let i=0; i<position.count; i++){
+        const y = position.getY(i) + yOffset;
+
+        //Busco el parámetro de la curva según la altura real (getPoint no es lineal en Y).
+        let low = 0;
+        let high = 1;
+        for(let k=0; k<20; k++){
+            const middle = (low + high)/2;
+            if(catmull_curve.getPoint(middle).y < y) low = middle;
+            else high = middle;
+        }
+
+        const curveX = catmull_curve.getPoint((low + high)/2).x;
+        //En el centro el desplazamiento es cero: se conserva la posición original.
+        const displacement = DEPTH/2 - curveX;
+        position.setZ(i,position.getZ(i) + displacement);
+    }
+
+    position.needsUpdate = true;
+    geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
+    return geometry;
+}
+
 //plano hexagonal que sirve de ala
 function buildHexagon(widthSegments, heightSegments,width,height,side_length){
     
@@ -177,6 +212,35 @@ function buildHexagonBorders(height,width,side_length,diameter,u_number,v_number
     const geometry = new ParametricGeometry (
         getParametricHexagonCilinders(vertices_x,vertices_y,radius)
         ,u_number,v_number);
+
+    //UV: U recorre el perímetro con distancia real; V, la circunferencia del tubo.
+    const lengths = [];
+    let totalLength = 0;
+    for(let k=0; k<6; k++){
+        const dx = vertices_x[k+1] - vertices_x[k];
+        const dy = vertices_y[k+1] - vertices_y[k];
+        const length = Math.hypot(dx,dy);
+        lengths.push(length);
+        totalLength += length;
+    }
+
+    const uv = geometry.attributes.uv;
+    for(let j=0; j<=v_number; j++){
+        const v = j/v_number;
+        const side = Math.min(5,Math.floor(v*6));
+        const localV = Math.min(1,v*6-side);
+
+        let distance = 0;
+        for(let k=0; k<side; k++) distance += lengths[k];
+        distance += localV*lengths[side];
+
+        for(let i=0; i<=u_number; i++){
+            const index = j*(u_number+1)+i;
+            uv.setXY(index,distance/totalLength,i/u_number);
+        }
+    }
+    uv.needsUpdate = true;
+
     return geometry;
 }
 
@@ -206,10 +270,6 @@ function getParametricCurveCilinders(curve,radius){
             tangent.z * normal.x - tangent.x * normal.z,
             tangent.x * normal.y - tangent.y * normal.x
         ).normalize();
-
-        
-            
-        
 
         
         const x = point.x + radius * Math.sin(phi) * normal.x + Math.cos(phi) * binormal.x * radius;
@@ -256,10 +316,29 @@ function buildHexagonCurveBorders(height,width,depth,diameter,u_number,v_number)
         ,u_number/4,v_number/4);
     line2.translate(0,-HEIGHT,0)
     
-    return BufferGeometryUtils.mergeGeometries(
-        [curve1, curve2, line1, line2],
-        false
-    );
+    
+
+    //UV
+    const geometries = [curve1,curve2,line1,line2];
+
+    for(let k=0; k<geometries.length; k++){
+        const geometry = geometries[k];
+        const uv = geometry.attributes.uv;
+
+        for(let j=0; j<=v_number/4; j++){
+            for(let i=0; i<=u_number/4; i++){
+                const index = j*(u_number/4+1)+i;
+
+                uv.setXY(index,j/(v_number/4),i/(u_number/4));
+            }
+        }
+
+        uv.needsUpdate = true;
+    }
+    
+    return  BufferGeometryUtils.mergeGeometries(
+        geometries,
+        false)
 }
 
 
@@ -284,24 +363,29 @@ export function createTieWings(){
     
     const material_hexagonal_curve_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        //map: atlas_uv.tiraVertical
-    color: 0x777777,});
+        map: atlas_uv.borderSeccion
+        });
 
     const wing_boder = new THREE.Mesh(hexagon_curve_border, material_hexagonal_curve_border);
 
     // wing_pylon
     const pylonSideLength = PYLONS_WIDTH - PYLONS_HEIGHT / Math.sqrt(3) * 0.5;
     const hexagon_pylon = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
-    const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER,20,60);
+    const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER/2,20,60);
+
+    //La cara y el borde siguen la curva del ala sin cambiar su posición central.
+    curvePylonToWing(hexagon_pylon);
+    //El borde está definido en Y=[0,PYLONS_HEIGHT] y después se centra.
+    curvePylonToWing(hexagon_pylon_border,-PYLONS_HEIGHT/2);
  
     const material_pylon = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.alaIzqHexagonoCentro
+        map: atlas_uv.pylonInterior
     });
     const material_pylon_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        //map: atlas_uv.tiraVertical
-    color: 0x777777,});
+        map: atlas_uv.borderSeccion
+    });
 
     const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
     const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);
@@ -323,8 +407,8 @@ export function createTieWings(){
     pylon_border.translateX(-PYLONS_WIDTH/2);
     pylon_border.translateY(-PYLONS_HEIGHT/2);
     
-    pylon_border.translateZ(FRAME_DIAMETER- DEPTH/2);
-    pylon.translateZ(2 * FRAME_DIAMETER - DEPTH/2);
+    pylon_border.translateZ(FRAME_DIAMETER - DEPTH/2);
+    pylon.translateZ(FRAME_DIAMETER - DEPTH/2);
 
     
     

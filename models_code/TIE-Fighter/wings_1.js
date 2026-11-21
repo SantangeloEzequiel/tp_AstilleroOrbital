@@ -6,6 +6,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 import * as atlas_uv from './atlas_uv.js'
 
 
+
 //Medidas
 const HEIGHT= measures.WINGS_HEIGHT;
 const WIDTH= measures.WING1_WIDTH;
@@ -91,41 +92,71 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
 //******************* */ 
 
 //superficies de revolucion de tubos, que estaran conectados en forma de hexagono
-function getParametricHexagonCilinders(vertices_x,vertices_y,radius){
-    return function (u, v, target){
-        let phi = 2 * Math.PI * u;
-        let side = Math.floor(6*v);
-        if(side == 6) side = 5;
-        
+
+function getParametricHexagonCilinders(vertices_x,vertices_y,radius,depth=1){
+
+    const normals = [];
+
+    for(let i=0; i<6; i++){
+        const dx = vertices_x[i+1] - vertices_x[i];
+        const dy = vertices_y[i+1] - vertices_y[i];
+        const length = Math.hypot(dx,dy);
+
+        normals.push({
+            x: -dy/length,
+            y: dx/length
+        });
+    }
+
+    const vertexNormals = [];
+
+    for(let i=0; i<6; i++){
+        const prev = normals[(i+5)%6];
+        const next = normals[i];
+
+        const nx = prev.x + next.x;
+        const ny = prev.y + next.y;
+        const length = Math.hypot(nx,ny);
+
+        vertexNormals.push({
+            x: nx/length,
+            y: ny/length
+        });
+    }
+
+    return function (u,v,target){
+        const phi = 2 * Math.PI * u;
+        const side = Math.min(5,Math.floor(6*v));
+        const local_v = Math.min(1,v*6-side);
+
         const x0 = vertices_x[side];
         const x1 = vertices_x[side+1];
-        
         const y0 = vertices_y[side];
         const y1 = vertices_y[side+1];
 
-        const local_v = v * 6 - side;
+        const center_x = x0 + (x1-x0)*local_v;
+        const center_y = y0 + (y1-y0)*local_v;
 
-        const dx = (x1-x0);
-        const dy = (y1-y0);
-        const length = (Math.sqrt(dx*dx+dy*dy));
+        const n0 = vertexNormals[side];
+        const n1 = vertexNormals[(side+1)%6];
 
-        const extra = 0.001; //esto lo pongo para que se solapen y queden bien los vertices
-        
-        const center_x = x0 + (2* extra * (dx / length) +dx) * local_v - extra * (dx / length);
-        const center_y = y0 + (2* extra * (dy / length) + dy) * local_v - extra * (dy / length);
-        
-        const nx= -dy / length;
-        const ny= dx / length;
-        
-        const x = center_x + nx * Math.sin(phi) * radius;
-        const y = center_y + ny * Math.sin(phi) * radius;
-        const z = radius * Math.cos(phi) * 2; //EL espesor es el del diametro, por eso el *2
-        
+        let nx = n0.x*(1-local_v) + n1.x*local_v;
+        let ny = n0.y*(1-local_v) + n1.y*local_v;
+
+        const length = Math.hypot(nx,ny);
+        nx /= length;
+        ny /= length;
+
+        const x = center_x + nx*Math.sin(phi)*radius;
+        const y = center_y + ny*Math.sin(phi)*radius;
+        const z = radius*Math.cos(phi) * depth;
+
         target.set(x,y,z);
     };
 }
 
-function buildHexagonBorders(height,width,side_length,diameter,u_number,v_number){
+
+function buildHexagonBorders(height,width,side_length,diameter,u_number,v_number, depth = 1){
 //defino vertices en sentido horario empezando por arrriba, repito devuelta el primero en la ultima posicion para simplificar codigo
     const vertices_y = [
         height,
@@ -149,9 +180,58 @@ function buildHexagonBorders(height,width,side_length,diameter,u_number,v_number
 
     //uso superficies de barrido para los tubos
     const geometry = new ParametricGeometry (
-        getParametricHexagonCilinders(vertices_x,vertices_y,radius)
+        getParametricHexagonCilinders(vertices_x,vertices_y,radius, depth)
         ,u_number,v_number);
-    return geometry;
+
+    //UV PARA TEXTURA 
+    
+    // Calcular longitud de cada lado
+    const lengths = [];
+    let perimeter = 0;
+
+    for (let i = 0; i < 6; i++) {
+        const dx = vertices_x[i + 1] - vertices_x[i];
+        const dy = vertices_y[i + 1] - vertices_y[i];
+
+        const length = Math.hypot(dx, dy);
+        lengths.push(length);
+        perimeter += length;
+    }
+
+    // Modificar UV
+    const uv = geometry.attributes.uv;
+
+    for (let j = 0; j <= v_number; j++) {
+
+        const v = j / v_number;
+        const side = Math.min(5, Math.floor(v * 6));
+        const localV = v * 6 - side;
+
+        let distance = 0;
+
+        for (let i = 0; i < side; i++) {
+            distance += lengths[i];
+        }
+
+        distance += localV * lengths[side];
+
+        const normalizedDistance = (distance / perimeter) * 3;
+
+        for (let i = 0; i <= u_number; i++) {
+
+            const index = j * (u_number + 1) + i;
+
+            uv.setXY(
+                index,
+                normalizedDistance,
+                i / u_number
+            );
+        }
+    }
+
+uv.needsUpdate = true;
+
+return geometry;
 }
 
 //********************* */
@@ -174,13 +254,17 @@ function getParametricStarArm(x0,y0,center_star_x,center_star_y, radius){
         const nx= -dy / length;
         const ny= dx / length;
         
-        const grow = radius * (0.5+ v * 3);
-        const x = center_x + nx * Math.sin(phi)  * grow;
-        const y = center_y + ny * Math.sin(phi)  * grow;
-        const z = radius * Math.cos(phi) * 2 + radius * Math.sin(phi) * 3 *v; //EL espesor es el del diametro, por eso el *2
+        const grow = radius * (0.5 + v *3 ) *1.2;
+
+        const x = center_x + nx * Math.sin(phi) * grow;
+        const y = center_y + ny * Math.sin(phi) * grow;
+
+        const z = Math.cos(phi) * grow / 1.2;
         
-        target.set(x,y,z);
+        target.set(x,y,z) ;
     };
+
+  
 }
 
 function buildTriangulesToHexagonVertex(height,width,side_length,diameter,u_number,v_number){
@@ -215,8 +299,21 @@ function buildTriangulesToHexagonVertex(height,width,side_length,diameter,u_numb
     //uso superficies de barrido para los tubos
         const arm = new ParametricGeometry (
             getParametricStarArm(vertices_x[side],vertices_y[side],center_star_x,center_star_y, radius)
-            ,u_number/6,v_number/6);
+            ,u_number,v_number);
         star.push(arm);
+          
+        //UV
+        const uv = arm.attributes.uv;
+
+        for(let j=0; j<=v_number; j++){
+            for(let i=0; i<=u_number; i++){
+                const index = j*(u_number+1)+i;
+            
+                uv.setXY(index,j/v_number,i/u_number);
+            }
+        }
+
+        uv.needsUpdate = true;
     }
      return BufferGeometryUtils.mergeGeometries(
         star,
@@ -239,39 +336,54 @@ export function createTieWings(){
 
     //wing_hexagon_border
     const hexagon_border = buildHexagonBorders(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,20,120);
-    const material_border = new THREE.MeshBasicMaterial({ 
+
+   const material_border_base = new THREE.MeshBasicMaterial({
+    color: 0x767982
+    });
+
+    const material_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        //map: atlas_uv.tiraVertical
-        color: 0x777777, 
-        });
-    const wing_hexagon_border = new THREE.Mesh(hexagon_border, material_border);
+        map: atlas_uv.borderSeccion,
+        transparent: true,
+        alphaTest: 0.01,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1
+    });
+
+    const wing_hexagon_border = new THREE.Group();
+
+    wing_hexagon_border.add(new THREE.Mesh(hexagon_border,material_border_base));
+    wing_hexagon_border.add(new THREE.Mesh(hexagon_border,material_border));
     
     //wing_triangules
     const triangules = buildTriangulesToHexagonVertex(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,60,120);
-    const material_triangules = new THREE.MeshBasicMaterial({ 
-        side: THREE.DoubleSide,
-        //map: atlas_uv.tiraVertical
-        color: 0x777777,});
-    const wing_triangules = new THREE.Mesh(triangules, material_triangules);
+    const wing_triangules = new THREE.Group();
+
+    wing_triangules.add(new THREE.Mesh(triangules,material_border_base));
+    wing_triangules.add(new THREE.Mesh(triangules,material_border));
 
     // wing_pylon
     const pylonSideLength = PYLONS_WIDTH - PYLONS_HEIGHT / Math.sqrt(3) * 0.5;
+    const hexagon_pylon_front = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
+    const hexagon_pylon_back = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
+    const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER,20,60,2.5);
 
-    const hexagon_pylon = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
-
-    const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER,20,60);
-
-    const material_pylon = new THREE.MeshBasicMaterial({
+    const material_pylon_front = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        //map: atlas_uv.alaIzqHexagonoCentro
-    color: 0x337788,});
-
+        map: atlas_uv.pylonExterior
+    });
+    const material_pylon_back = new THREE.MeshBasicMaterial({
+        side: THREE.DoubleSide,
+        map : atlas_uv.pylonInterior
+    });
     const material_pylon_border = new THREE.MeshBasicMaterial({
         side: THREE.DoubleSide,
-        //map: atlas_uv.tiraVertical
-    color: 0x777777});
+        map : atlas_uv.borderSeccion
+    });
 
-    const pylon = new THREE.Mesh(hexagon_pylon, material_pylon);
+    const pylon_front = new THREE.Mesh(hexagon_pylon_front, material_pylon_front);
+    const pylon_back = new THREE.Mesh(hexagon_pylon_back, material_pylon_back);
     const pylon_border = new THREE.Mesh(hexagon_pylon_border,material_pylon_border);
     
     //GROUPING
@@ -287,16 +399,16 @@ export function createTieWings(){
     wing_triangules.translateX(-WIDTH/2);
     wing_triangules.translateY(-HEIGHT/2);
 
-    wing.add(pylon);
-    /*
+    wing.add(pylon_front);
+    wing.add(pylon_back);
     wing.add(pylon_border);
 
     pylon_border.translateX(-PYLONS_WIDTH/2);
     pylon_border.translateY(-PYLONS_HEIGHT/2);
+    pylon_border.position.z = -FRAME_DIAMETER/4;
     
-    pylon_border.translateZ(-FRAME_DIAMETER);
-    */
-    pylon.translateZ(-2 * FRAME_DIAMETER);
+    pylon_front.position.z = -FRAME_DIAMETER* 1.5;
+    pylon_back.position.z = FRAME_DIAMETER;
     
     wing.rotateY(-Math.PI/2);
 
