@@ -178,6 +178,7 @@ export function createTieFuselage() {
     const tube = buildTube(tubeLength, DIAMETER_EXT, 64, 64);
     atlas_uv.panelBrazos.wrapT = THREE.RepeatWrapping            
     const material_tube = new THREE.MeshBasicMaterial({ 
+            side : THREE.DoubleSide,
             map: atlas_uv.panelBrazos
             });
     

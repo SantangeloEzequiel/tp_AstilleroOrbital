@@ -20,6 +20,64 @@ function buildPlane(width,heigth,withSegments,heigthSegments){
     return geometry;
 }
 
+//Esta funcion fue hecha con IA
+function buildFloorWithHoles(width, depth, holes) {
+    const xLimits = [-width / 2, width / 2];
+    const zLimits = [-depth / 2, depth / 2];
+
+    for (const hole of holes) {
+        xLimits.push(hole.x - hole.width / 2);
+        xLimits.push(hole.x + hole.width / 2);
+
+        zLimits.push(hole.z - hole.depth / 2);
+        zLimits.push(hole.z + hole.depth / 2);
+    }
+
+    const xs = [...new Set(xLimits)].sort((a, b) => a - b);
+    const zs = [...new Set(zLimits)].sort((a, b) => a - b);
+
+    const geometries = [];
+
+    for (let i = 0; i < xs.length - 1; i++) {
+        for (let j = 0; j < zs.length - 1; j++) {
+
+            const x0 = xs[i];
+            const x1 = xs[i + 1];
+
+            const z0 = zs[j];
+            const z1 = zs[j + 1];
+
+            const centerX = (x0 + x1) / 2;
+            const centerZ = (z0 + z1) / 2;
+
+            const insideHole = holes.some(hole =>
+                centerX > hole.x - hole.width / 2 &&
+                centerX < hole.x + hole.width / 2 &&
+                centerZ > hole.z - hole.depth / 2 &&
+                centerZ < hole.z + hole.depth / 2
+            );
+
+            if (insideHole) continue;
+
+            const geometry = buildPlane(
+                x1 - x0,
+                z1 - z0,
+                1,
+                1
+            );
+            geometry.rotateX(-Math.PI / 2);
+            geometry.translate(centerX, 0, centerZ);
+
+            geometries.push(geometry);
+        }
+    }
+
+    return BufferGeometryUtils.mergeGeometries(
+        geometries,
+        false
+    );
+}
+
 
 //----------
 //  EXTERIOR
@@ -269,12 +327,18 @@ export function buildStructure(Segments){
     roof.rotateX(Math.PI/2);
 
     //FLOOR
-    const floor_geometry = buildPlane(width,depth,widthSegments,depthSegments);
+    const side_length = 3.2;
+    //Agujeros: fuselaje,alas,grua
+    const holes = [
+    { x: -side_length, z: 0, width: side_length, depth: side_length },
+    { x: side_length, z: 0, width: side_length, depth: side_length },
+    { x: 0, z: -side_length * 1.5, width: side_length * 4, depth: side_length }];
+    const floor_geometry = buildFloorWithHoles(width, depth, holes);
     const material_floor = new THREE.MeshBasicMaterial({
         color: 0x775555,
         side: THREE.DoubleSide});
     const floor = new THREE.Mesh(floor_geometry,material_floor);
-    floor.rotateX(-Math.PI/2);
+    //floor.rotateX(-Math.PI/2);
 
     //EXTERIOR
     const exterior_geometry = buildExterior(width,height,depth,proportion,proportion_exterior_heigth,widthSegments,heightSegments,depthSegments);

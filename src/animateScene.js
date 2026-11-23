@@ -20,7 +20,7 @@ import { createTieEngines as createTieEngines_1} from '../models_code/TIE-Fighte
 import { createTieEngines as createTieEngines_2} from '../models_code/TIE-Fighter/engines_2.js';
 import { createTieCockpit as createTieCockpit} from '../models_code/TIE-Fighter/cockpit.js';
 //model grua
-import { buildGrua } from './buildGrua,js';
+import { buildGrua } from './buildGrua.js';
 
 
 
@@ -62,48 +62,67 @@ export class AnimateScene {
         //WINGS
         this.wings = [];
         this.wings.push(model_createTieWing_1(side_length*2));
+        this.wings.push(model_createTieWing_1(side_length*2));
         
 
         //FUSELAGE
         this.fuselage = [];
         this.fuselage.push(model_fusesalge());
-        
-        
 
         //PLATAFORM 
         plataform_fuselage.add(door);
         plataform_fuselage.add(container);
-        
 
         //PLATAFORM WINGS
         const plataform_wings = plataform_fuselage.clone();
-        plataform_wings.translateX(2*side_length);
+        plataform_wings.translateX(side_length);
         
 
         //PLATAFORM GRUA
         const plataform_grua = plataform_fuselage.clone();
-        plataform_grua.scale.x=3;
+        plataform_grua.scale.x=4;
         plataform_grua.translateZ(- side_length * 1.5);
-        plataform_grua.translateX(side_length);
+        plataform_grua.translateX(0);
         
 
         //GRUA
-        
         const GRUA = buildGrua();
+
+        const first_axis = GRUA.getObjectByName("first_axis");
+        const second_axis = GRUA.getObjectByName("second_axis");
+        const third_axis = GRUA.getObjectByName("third_axis");
+        const wrist = GRUA.getObjectByName("wrist");
+
         GRUA.translateZ(-side_length*1.5);
-        GRUA.translateX(side_length);
+        GRUA.translateX(-side_length);
         GRUA.translateY(-(HANGAR_measures.TOTAL_HEIGHT/4));
 
+        
+        first_axis.rotateZ(-Math.PI/2.5);
+        second_axis.rotateZ(-Math.PI/2);
+        wrist.rotateY(Math.PI/2)
+        
+        
+
         //SCENE
-        /*
+        plataform_fuselage.translateX(-side_length);
+        piston.translateX(-side_length);
+        this.wings[0].translateY(-side_length);
+        this.wings[0].translateZ(0.3);
+        this.wings[0].scale.set(1,1,-1);
+        this.wings[1].translateY(-side_length);
+        this.wings[1].translateZ(-TIE_measures.WINGS_FRAME_DIAMETER*2);
+        this.wings[1].scale.set(1,1,-1);
+
         scene.add(GRUA)
 
         scene.add(plataform_fuselage);
         scene.add(plataform_wings);
         scene.add(plataform_grua);
         scene.add(this.wings[0]);
+        scene.add(this.wings[1]);
         piston.add(this.fuselage[0]);
-        scene.add(piston);*/
+        scene.add(piston);
 
 
         // Guardo referencias 
@@ -115,6 +134,7 @@ export class AnimateScene {
 
         //constantes de calculo
         this.ala_agarrada = false;
+        this.anclaje_terminado = false;
     }
 
     animate() {
@@ -127,6 +147,7 @@ export class AnimateScene {
         const second_axis = this.grua.getObjectByName("second_axis");
         const third_axis = this.grua.getObjectByName("third_axis");
         const wrist = this.grua.getObjectByName("wrist");
+        const hand = this.grua.getObjectByName("hand")
 
         //TIMER
         this.timer.update();
@@ -134,7 +155,9 @@ export class AnimateScene {
         const animation_time= this.elapsed_time;
         const time = this.timer.getDelta();
 
-        //SE ABREN LAS PUERTAS
+        //----------------------------------------
+        //      SE ABREN LAS PUERTAS
+        //----------------------------------------
 
         this_animation_time = 3;
         if(animation_time<total_animation_time+this_animation_time){
@@ -145,77 +168,495 @@ export class AnimateScene {
         }
         total_animation_time+=this_animation_time;
 
-        //SUBE EL FUSELAJE Y LA GRUA
+        
+        //----------------------------------------
+        //      SUBE EL FUSELAJE Y LA GRUA
+        //----------------------------------------
 
         this_animation_time = 3; 
         if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
-            const speed = (HANGAR_measures.TOTAL_HEIGHT/8 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
             this.piston.translateY(speed * time );
         }        
         if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
-            const speed = (HANGAR_measures.TOTAL_HEIGHT/8 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
             this.grua.translateY(speed * time );
         }
         total_animation_time+=this_animation_time;
 
-        //GRUA SE ACOMODA A SU POSICION DEFAULT
-
-        this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
-            const speed = (-Math.PI) / this_animation_time;
-            second_axis.rotateX(speed * time );
-            third_axis.rotateX(speed/2 * time );
-        }
-        total_animation_time+=this_animation_time;
-
-        
-        //GRUA SE MUEVE HACIA EL PRIMER ALA
-
-        this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
-            const speed = (this.side_length) / this_animation_time;
-            this.grua.translateX(speed * time );
-        }
-        total_animation_time+=this_animation_time;
-
-        //GRUA AGARRA EL PRIMER ALA
+        //----------------------------------------
+        // GRUA SE ACOMODA A SU POSICION DEFAULT
+        //----------------------------------------
+        //giran los eslabones
         this_animation_time = 2;
         if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
             const speed = (Math.PI) / this_animation_time;
-            first_axis.rotateX(speed/2 * time );
-            second_axis.rotateX(speed/2 * time );
+            first_axis.rotateZ(speed / 2.5 * time)
+        }
+        total_animation_time+=this_animation_time;
+        //gira la base
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (-Math.PI/2) / this_animation_time;
+            this.grua.rotateY(speed * time);
+        }
+        total_animation_time+=this_animation_time;
+        
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+        
+        //----------------------------------------
+        //   GRUA  SE MUEVE HACIA LA PRIMER ALA
+        //----------------------------------------
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (2 * this.side_length) / this_animation_time;
+            this.grua.translateZ(- speed * time );
         }
         total_animation_time+=this_animation_time;
 
-        //GRUA SE ACOMODA A SU POSICION DEFAULT
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
 
+        //----------------------------------------
+        //      GRUA AGARRA EL PRIMER ALA
+        //----------------------------------------
+
+        //rota el primer eslabon
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ( -speed/3.4 * time );
+        }
+        total_animation_time+=this_animation_time;
+        //se abre la mano
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = 30 / this_animation_time;
+            hand.setApertura(THREE.MathUtils.degToRad(speed * time));
+        }
+        total_animation_time+=this_animation_time;
+        
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+
+        //se encastra
+        this_animation_time = 0.1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ( - speed/16 * time );
+            second_axis.rotateZ( speed/16 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+
+        //cierro la mano
+        this_animation_time = 0.5;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = 12 / this_animation_time;
+            hand.setApertura(THREE.MathUtils.degToRad(-speed * time));
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //   GRUA SE ACOMODA A SU POSICION DEFAULT
+        //----------------------------------------
+        //ala hija de mano
         this_animation_time = 2;
         if(animation_time >= total_animation_time && this.ala_agarrada == false &&animation_time < total_animation_time +this_animation_time){
-            wrist.attach(this.wings[0]); //se ejecuta una sola vez
+            hand.attach(this.wings[0]); //se ejecuta una sola vez
             this.ala_agarrada = true;
         }
-            
-
-        
+        //vuelve a default
         if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
-            const speed = (-Math.PI) / this_animation_time;
-            first_axis.rotateX(speed/2 * time );
-            second_axis.rotateX(speed/2 * time );
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(speed/3.4 * time + speed/16 * time);
+            this.wings[0].rotateY(- speed/4.85 * time)
+            second_axis.rotateZ(- speed/16 * time );
         }
         total_animation_time+=this_animation_time;
 
-        // ENCASTRE DEL PRIMER ALA
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      GRUA SE MUEVE A FUSELAJE
+        //----------------------------------------
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (3 * this.side_length) / this_animation_time;
+            this.grua.translateZ(speed * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      ENCASTRE DEL PRIMER ALA
+        //----------------------------------------
+
+        //gira el ultimo brazo a 90 grados para que este en angulo con el brazo del fuselaje
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            third_axis.rotateX(-speed/2 * time);
+        }
+        total_animation_time+=this_animation_time;
+        //gira la base para dar espacio
+        this_animation_time = 0.5
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            this.grua.rotateY(-speed/60 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //giran los eslabones para el encastre
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(-speed/2 * time + speed/140 * time);
+            second_axis.rotateZ(speed/2 * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //rota la muñeca para orientar el ala
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            wrist.rotateY(speed/2 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //encastre
+        this_animation_time = 0.1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            this.grua.rotateY(speed/60 * time);
+        }
+        total_animation_time+=this_animation_time;
         
-        //SUBE SEGUNDA ALA
+        //espero 0.5 seg y desheredo el ala
+        this_animation_time=0.5;
+        if(animation_time >= total_animation_time && this.ala_agarrada == true &&animation_time < total_animation_time +this_animation_time){
+            this.scene.attach(this.wings[0]); //se ejecuta una sola vez
+            this.ala_agarrada = false;
 
-        //ENCASTRE DE SEGUNDA ALA
+            //la acomodo desde 0
+            this.wings[0].rotation.set(0, -Math.PI/2, 0);
+            this.wings[0].position.set(- (this.side_length + TIE_measures.FUSELAGE_LENGTH/2), TIE_measures.TOTAL_HEIGHT / 2, 0);
+            this.wings[0].scale.set(1, 1, -1);
+        }
+        total_animation_time+=this_animation_time;
 
-        //VUELA LA NAVE
+        //----------------------------------------
+        //   GRUA VUELVE A SU POSICION DEFAULT
+        //----------------------------------------
 
-        //BAJA EL MECANISMO
+        //separo el ala
+        this_animation_time=0.5;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(speed/120 * time );
+            this.grua.rotateY(-speed/25 * time);
+        }
+        total_animation_time+=this_animation_time;
 
-        //SE CIERRAN LAS PUERTAS
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
 
+        //ACOMODO LA GRUA A SU POSICION DEFAULT
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(speed/2 * time - speed/140 * time);
+            second_axis.rotateZ(-speed/2 * time );
+            third_axis.rotateX(speed/2 * time);
+            wrist.rotateY(-speed/2 * time);
+
+            this.grua.rotateY(speed/25 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //  GRUA SE MUEVE A ALAS, Y SUBE SEGUNDO ALA
+        //----------------------------------------
+
+        //se mueve la grua
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = -(3 * this.side_length) / this_animation_time;
+            this.grua.translateZ(speed * time );
+        }
+        //sube el ala
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (0.4+TIE_measures.WINGS_FRAME_DIAMETER*2) / this_animation_time;
+            this.wings[1].translateZ(speed * time);
+        }
+        total_animation_time+=this_animation_time;
+
+
+        //----------------------------------------
+        //      GRUA AGARRA SEGUNDO ALA
+        //----------------------------------------
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //rota el primer eslabon
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ( -speed/3.4 * time );
+        }
+        total_animation_time+=this_animation_time;
+        //se abre la mano
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = 30 / this_animation_time;
+            hand.setApertura(THREE.MathUtils.degToRad(speed * time));
+        }
+        total_animation_time+=this_animation_time;
+        
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //se encastra
+        this_animation_time = 0.1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ( - speed/16 * time );
+            second_axis.rotateZ( speed/16 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //cierro la mano
+        this_animation_time = 0.5;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = 12 / this_animation_time;
+            hand.setApertura(THREE.MathUtils.degToRad(-speed * time));
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5;
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //   GRUA SE ACOMODA A SU POSICION DEFAULT
+        //----------------------------------------
+        //ala hija de mano
+        this_animation_time = 2;
+        if(animation_time >= total_animation_time && this.ala_agarrada == false &&animation_time < total_animation_time +this_animation_time){
+            hand.attach(this.wings[1]); //se ejecuta una sola vez
+            this.ala_agarrada = true;
+        }
+        //vuelve a default
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(speed/3.4 * time + speed/16 * time);
+            this.wings[1].rotateY(- speed/4.85 * time)
+            second_axis.rotateZ(- speed/16 * time );
+        }
+            total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      GRUA SE MUEVE A FUSELAJE
+        //----------------------------------------
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (this.side_length - TIE_measures.WINGS_FRAME_DIAMETER) / this_animation_time;
+            this.grua.translateZ(speed * time );
+        }
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      ENCASTRE DEL SEGUNDO ALA
+        //----------------------------------------
+
+        //gira el ultimo brazo a 90 grados para orientar el ala
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            third_axis.rotateX(speed/2 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+            //gira la base para dar espacio
+        this_animation_time = 0.5;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            this.grua.rotateY(speed/60 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+            //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+            //giran los eslabones para el encastre
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(-speed/2 * time + speed/140 * time);
+            second_axis.rotateZ(speed/2 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+            //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+            //rota la muñeca para orientar el ala
+        this_animation_time = 1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            wrist.rotateY(-speed/2 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+            //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+            //encastre
+        this_animation_time = 0.1;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            this.grua.rotateY(-speed/60 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+            //espero 0.5 seg y desheredo el ala
+        this_animation_time = 0.5;
+        if(animation_time >= total_animation_time && this.ala_agarrada == true && animation_time < total_animation_time +this_animation_time){
+            this.scene.attach(this.wings[1]);
+            this.ala_agarrada = false;
+
+                //la acomodo del otro lado del fuselaje
+            this.wings[1].rotation.set(0, Math.PI/2, 0);
+            this.wings[1].position.set(
+                -(this.side_length - TIE_measures.FUSELAGE_LENGTH/2),
+                TIE_measures.TOTAL_HEIGHT/2,
+                0
+            );
+            this.wings[1].scale.set(1, 1, -1);
+        }
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //   GRUA VUELVE A SU POSICION DEFAULT
+        //----------------------------------------
+
+        //separo el ala
+        this_animation_time = 0.5;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(speed/120 * time);
+            this.grua.rotateY(speed/25 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //ACOMODO LA GRUA A SU POSICION DEFAULT
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+
+                first_axis.rotateZ(speed/2 * time - speed/140 * time);
+            second_axis.rotateZ(-speed/2 * time);
+            third_axis.rotateX(-speed/2 * time);
+            wrist.rotateY(speed/2 * time);
+
+                this.grua.rotateY(-speed/25 * time);
+        }
+        total_animation_time+=this_animation_time;  
+
+        //espero 0.5 segundo
+        this_animation_time = 0.5; total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      GRUA VUELVE A LA POSICION INICIAL
+        //----------------------------------------
+
+        //grua vuelve a su plataforma
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (this.side_length + TIE_measures.WINGS_FRAME_DIAMETER/2) / this_animation_time;
+            this.grua.translateZ(speed * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //gira la base
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI/2) / this_animation_time;
+            this.grua.rotateY(speed * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //giran los eslabones
+        this_animation_time = 2;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (Math.PI) / this_animation_time;
+            first_axis.rotateZ(-speed/2.5 * time - speed/60 * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      BAJA EL MECANISMO
+        //----------------------------------------
+        this_animation_time = 3;
+
+        if(animation_time >= total_animation_time && this.anclaje_terminado == false &&animation_time < total_animation_time +this_animation_time){
+            this.scene.attach(this.fuselage[0]); //se ejecuta una sola vez
+            this.anclaje_terminado = true;
+        }
+
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT/2) / this_animation_time;
+            this.grua.translateY(-speed * time);
+            this.piston.translateY(-speed * time);
+        }
+        total_animation_time+=this_animation_time;
+
+        //----------------------------------------
+        //      SE CIERRAN LAS PUERTAS
+        //----------------------------------------
+
+        this_animation_time = 3;
+        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+            const speed = this.side_length / this_animation_time;
+            this.door_wings.translateX(speed * time);
+            this.door_fuselage.translateX(speed * time);
+            this.door_grua.translateX(speed * time);
+        }
+        total_animation_time+=this_animation_time;
         
     }
 }

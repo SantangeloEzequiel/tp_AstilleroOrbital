@@ -22,11 +22,11 @@ export function buildGrua(){
     const base = new THREE.Mesh(base_geometry,base_material);
 
     //FIRST ESLABON
-    const firstEslabon_height= 5;
+    const firstEslabon_height= 3;
     const firstEslabon = buildEslabon(firstEslabon_height,eslabon_side_length,espesor,joint_height,60,60);
     
     //SECOND ESLABON
-    const secondEslabon_height= 1;
+    const secondEslabon_height= 2.1;
     const secondEslabon = buildEslabon(secondEslabon_height,eslabon_side_length,espesor,joint_height,60,60);
     secondEslabon.children.at(-1).rotateY(THREE.MathUtils.degToRad(90));
 
@@ -40,14 +40,16 @@ export function buildGrua(){
     const wrist_geometry = buildCilinder(wrist_radius,wrist_heigth,60,60);
     const wrist_material = new THREE.MeshBasicMaterial({color: 0x991111, side: THREE.DoubleSide});
     const wrist = new THREE.Mesh(wrist_geometry,wrist_material);
- 
+    
+    //HAND
+    const hand = buildHand(1,0.1,160,160);
 
     //GROUPING
 
     GRUA.add(base);
     
     base.add(first_axis);
-    first_axis.translateY(base_heigth/2);
+    first_axis.translateY(base_heigth/2 + joint_height*2);
 
     first_axis.add(firstEslabon);
     firstEslabon.add(second_axis);
@@ -60,16 +62,15 @@ export function buildGrua(){
     third_axis.add(thirdEslabon);
     thirdEslabon.add(wrist);
     wrist.translateY(thirdEslabon_height+wrist_heigth/2);
+
+    wrist.add(hand);
+    hand.translateY(wrist_heigth/2);
     
     first_axis.name = "first_axis";
     second_axis.name = "second_axis";
     third_axis.name = "third_axis";
     wrist.name = "wrist";
-
-    //Posicion inicial
-    GRUA.getObjectByName("second_axis").rotation.x= Math.PI;
-    GRUA.getObjectByName("third_axis").rotation.x= Math.PI/2;
-
+    hand.name = "hand";
     return GRUA;
 }
 // BUILD ESLABON
@@ -307,3 +308,79 @@ function buildCilinder(radius,height,radialSegments,heightSegments){
     );
 }
 
+//-----------
+//  HAND
+//-----------
+
+function buildHand(length, espesor, lengthSegments, espesorSegments) {
+
+    const hand = new THREE.Group();
+
+    const material = new THREE.MeshStandardMaterial({
+        color: 0x888888,
+        side: THREE.DoubleSide
+    });
+
+    const segmentLength = length / 2;
+    const width = espesor * 2;
+
+    const fingers = [];
+
+    // Inclinación fija de las puntas
+    const bendAngle = Math.PI / 3; // 60 grados
+
+    for (const side of [-1, 1]) {
+
+        const finger = new THREE.Group();
+
+        // PRIMER TRAMO
+        const first_geometry = buildBox( width,segmentLength, espesor, espesorSegments, lengthSegments, espesorSegments);
+
+        const first = new THREE.Mesh(first_geometry, material);
+        first.position.y = segmentLength / 2;
+
+        finger.add(first);
+
+        // SEGUNDO TRAMO
+        const second_geometry = buildBox( width, segmentLength, espesor, espesorSegments, lengthSegments, espesorSegments);
+
+        const second = new THREE.Mesh(second_geometry, material);
+
+        const joint = new THREE.Group();
+        joint.position.y = segmentLength;
+
+        second.position.y = segmentLength / 2;
+        joint.add(second);
+
+        // Las puntas siempre apuntan hacia adentro
+        joint.rotation.z = side * bendAngle;
+
+        finger.add(joint);
+        hand.add(finger);
+
+        fingers.push(finger);
+    }
+
+    // Apertura inicial
+    hand.apertura = THREE.MathUtils.degToRad(30);
+
+    // Control de apertura por incremento
+    hand.setApertura = function(angulo) {
+
+        hand.apertura = THREE.MathUtils.clamp(
+            hand.apertura + angulo,
+            0,
+            Math.PI / 3
+        );
+
+        const a = hand.apertura;
+
+        fingers[0].rotation.z = a;
+        fingers[1].rotation.z = -a;
+    };
+
+    // Aplicar apertura inicial
+    hand.setApertura(0);
+
+    return hand;
+}

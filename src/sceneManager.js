@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
 import { buildShip} from '../models_code/buildTieFighter.js';
 import { buildHangar} from '../models_code/buildHangar.js';
+import * as HANGAR_measures from '../models_code/TIE-Fighter-Construction-Facility/blueprints/measures.js';
+import * as TIE_measures from '../models_code/TIE-Fighter/blueprints/measures.js';
 
 const SCALE = 0.01; //TIE FIGTHER
 
@@ -69,6 +71,7 @@ export class SceneManager {
 		
 		const hangar = buildHangar();
 		scene.add(hangar);
+		hangar.translateY(HANGAR_measures.TOTAL_HEIGHT/2);
 		
 		//NAVES
 		
@@ -76,16 +79,16 @@ export class SceneManager {
 		this.ships[0]=buildShip(1,1);
 		//anido la camara a ship1
 		this.ships[0].add(this.cameras[CAMERA.COCKPIT]);
-		scene.add(this.ships[0]);
 
 		this.ships[1]=buildShip(2,0);
 		this.ships[2]=buildShip(3,0);
 
-		this.ships[1].position.set(5,0,0);
-		this.ships[2].position.set(-5,0,0);
+		this.ships[0].position.set(0,5,0);
+		this.ships[1].position.set(5,5,0);
+		this.ships[2].position.set(-5,5,0);
 
-		for(let number in this.ships)
-			scene.add(this.ships[number]);
+		//for(let number in this.ships)
+		//	scene.add(this.ships[number]); 
 	}
 
 	moveShip(keys) {
