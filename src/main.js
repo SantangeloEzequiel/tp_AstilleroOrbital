@@ -55,6 +55,7 @@ let engine0,engine1,engine2;
 
 //scene
 let scene, renderer, container, sceneManager, animateScene, isAnimating = false;
+let animationSpeed = 1, RESTART = false;
 
 function setupThreeJs() {
 	container = document.getElementById('container3D');
@@ -98,13 +99,18 @@ function animate() {
 	requestAnimationFrame(animate);
 	sceneManager.animate();
 
-	//ANIMATE SCRIPT
+	timer.update();
+	const delta = timer.getDelta();
 
-	if (isAnimating) { 
-		animateScene.animate();
+	//ANIMATE SCRIPT
+    if (isAnimating) {
+        animateScene.animate(delta * animationSpeed);
     }
 
-	timer.update();
+	if(RESTART){
+		RESTART=false;
+		window.location.reload();
+	}
 
 	switch(params.camaraActual){
 		case 'COCKPIT' :{
@@ -128,22 +134,6 @@ sceneManager = new SceneManager(scene,cameras);
 animateScene = new AnimateScene(scene,cameras);
 createMenu();
 animate();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //---------------------------------------------------------------------------
 //								MENU
@@ -179,48 +169,76 @@ function createMenu() {
 			 //sceneManager.c
         });
 	
-	// ANIMATE
+	//----------------------------------------
+	//      ANIMATE
+	//----------------------------------------
+
 	const actions = {
 	    animate: () => {
 	        isAnimating = !isAnimating;
-	    }
+	    },
+	    speed: 1,
+		restart: () => {
+        window.location.reload();
+    },
 	};
-	
+
+	//VELOCIDAD
+	gui.add(actions, 'speed', {
+		'0.25x': 0.25,
+	    '0.5x': 0.5,
+	    '1x': 1,
+	    '2x': 2,
+	    '4x': 4
+	})
+	.name('Velocidad')
+	.onChange((value) => {
+	    animationSpeed = value;
+	});
+
+	//PLAY / PAUSE
 	const controller = gui.add(actions, 'animate').name('');
-	
-	// Obtengo el contenedor
-	const container = controller.domElement;
-	
-	// Limpio su contenido
-	container.innerHTML = '';
-	
-	// Creo un botón HTML real
+
+	const buttonContainer = controller.domElement;
+
+	buttonContainer.innerHTML = '';
+
 	const button = document.createElement('button');
-	
-	button.textContent = 'Animate';
+
+	button.textContent = 'Play';
 	button.style.width = '100%';
 	button.style.padding = '5px';
 	button.style.backgroundColor = '#444';
 	button.style.color = 'white';
 	button.style.border = 'none';
 	button.style.cursor = 'pointer';
+
+	const animate_button = button.cloneNode(true);
+	animate_button.addEventListener('click', (event) => {
+	    event.stopPropagation();
+
+	    isAnimating = !isAnimating;
+
+	    animate_button.textContent = isAnimating ? 'Pause' : 'Play';
+	    animate_button.style.backgroundColor = isAnimating ? '#2ecc71' : '#444';
+	});
+
+	buttonContainer.appendChild(animate_button);
+
+	//RESTART
+	const restart_controller = gui.add(actions, 'restart').name('');
+	const restart_buttonContainer = restart_controller.domElement;
 	
-	// Evento del botón
-	button.addEventListener('click', (event) => {
+	restart_buttonContainer.innerHTML = '';
+	
+	const restart_button = button.cloneNode(true);
+	restart_button.textContent = 'Restart';
+	
+	restart_button.addEventListener('click', (event) => {
 	    event.stopPropagation();
 	
-	    isAnimating = !isAnimating;
-	
-	    button.textContent = isAnimating ? 'Stop' : 'Animate';
-	    button.style.backgroundColor = isAnimating ? '#2ecc71' : '#444';
+	    RESTART = true;
 	});
 	
-	// Lo agrego al menú
-	container.appendChild(button);
-			/*
-	gui.add(params, 'posicionSobreRecorrido', 0, 1).step(0.001);
-	gui.add(params, 'anguloCabina', 0, 360).step(0.001);
-	gui.add(params, 'anguloBrazo', 0, 90).step(0.001);
-	gui.add(params, 'anguloAntebrazo', 0, 90).step(0.001);
-	gui.add(params, 'anguloPala', 0, 90).step(0.001);*/
+	restart_buttonContainer.appendChild(restart_button);
 }

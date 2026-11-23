@@ -3,7 +3,6 @@ import * as HANGAR_measures from '../models_code/TIE-Fighter-Construction-Facili
 import * as TIE_measures from '../models_code/TIE-Fighter/blueprints/measures.js';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { Timer } from 'three/addons/misc/Timer.js';
 
 
 //Models hangar
@@ -31,8 +30,6 @@ export class AnimateScene {
         this.cameras = cameras;
 
         //timers
-        const timer = new Timer();
-        this.timer = timer;
         this.elapsed_time=0;
 
         //BUILD PLATAFORM
@@ -137,8 +134,8 @@ export class AnimateScene {
         this.anclaje_terminado = false;
     }
 
-    animate() {
-        //Dado que hay una pausa, el timer de animate es diferente al de main
+    animate(delta) {
+        //El tiempo de la animacion lo recibe del timer de main
         let this_animation_time,total_animation_time=0;
 
         
@@ -150,17 +147,22 @@ export class AnimateScene {
         const hand = this.grua.getObjectByName("hand")
 
         //TIMER
-        this.timer.update();
-        this.elapsed_time+= this.timer.getDelta();
-        const animation_time= this.elapsed_time;
-        const time = this.timer.getDelta();
+        const previous_time = this.elapsed_time;
+        this.elapsed_time += delta;
+        const animation_time = this.elapsed_time;
+        let time = 0;
+
+        //Tiempo exacto recorrido en cada etapa (independiente de los FPS)
+        const stepTime = (start, duration) => Math.max(0,
+            Math.min(animation_time, start + duration) - Math.max(previous_time, start)
+        );
 
         //----------------------------------------
         //      SE ABREN LAS PUERTAS
         //----------------------------------------
 
         this_animation_time = 3;
-        if(animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = this.side_length / this_animation_time;
             this.door_wings.translateX(-speed * time );
             this.door_fuselage.translateX(-speed * time);
@@ -174,11 +176,11 @@ export class AnimateScene {
         //----------------------------------------
 
         this_animation_time = 3; 
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
             this.piston.translateY(speed * time );
         }        
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
             this.grua.translateY(speed * time );
         }
@@ -189,14 +191,14 @@ export class AnimateScene {
         //----------------------------------------
         //giran los eslabones
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed / 2.5 * time)
         }
         total_animation_time+=this_animation_time;
         //gira la base
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (-Math.PI/2) / this_animation_time;
             this.grua.rotateY(speed * time);
         }
@@ -210,7 +212,7 @@ export class AnimateScene {
         //   GRUA  SE MUEVE HACIA LA PRIMER ALA
         //----------------------------------------
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (2 * this.side_length) / this_animation_time;
             this.grua.translateZ(- speed * time );
         }
@@ -226,14 +228,14 @@ export class AnimateScene {
 
         //rota el primer eslabon
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ( -speed/3.4 * time );
         }
         total_animation_time+=this_animation_time;
         //se abre la mano
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = 30 / this_animation_time;
             hand.setApertura(THREE.MathUtils.degToRad(speed * time));
         }
@@ -245,7 +247,7 @@ export class AnimateScene {
 
         //se encastra
         this_animation_time = 0.1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ( - speed/16 * time );
             second_axis.rotateZ( speed/16 * time);
@@ -258,7 +260,7 @@ export class AnimateScene {
 
         //cierro la mano
         this_animation_time = 0.5;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = 12 / this_animation_time;
             hand.setApertura(THREE.MathUtils.degToRad(-speed * time));
         }
@@ -273,12 +275,12 @@ export class AnimateScene {
         //----------------------------------------
         //ala hija de mano
         this_animation_time = 2;
-        if(animation_time >= total_animation_time && this.ala_agarrada == false &&animation_time < total_animation_time +this_animation_time){
+        if(previous_time < total_animation_time && animation_time >= total_animation_time && this.ala_agarrada == false){
             hand.attach(this.wings[0]); //se ejecuta una sola vez
             this.ala_agarrada = true;
         }
         //vuelve a default
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed/3.4 * time + speed/16 * time);
             this.wings[0].rotateY(- speed/4.85 * time)
@@ -294,7 +296,7 @@ export class AnimateScene {
         //      GRUA SE MUEVE A FUSELAJE
         //----------------------------------------
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (3 * this.side_length) / this_animation_time;
             this.grua.translateZ(speed * time );
         }
@@ -306,14 +308,14 @@ export class AnimateScene {
 
         //gira el ultimo brazo a 90 grados para que este en angulo con el brazo del fuselaje
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             third_axis.rotateX(-speed/2 * time);
         }
         total_animation_time+=this_animation_time;
         //gira la base para dar espacio
         this_animation_time = 0.5
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             this.grua.rotateY(-speed/60 * time);
         }
@@ -324,7 +326,7 @@ export class AnimateScene {
 
         //giran los eslabones para el encastre
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(-speed/2 * time + speed/140 * time);
             second_axis.rotateZ(speed/2 * time );
@@ -336,7 +338,7 @@ export class AnimateScene {
 
         //rota la muñeca para orientar el ala
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             wrist.rotateY(speed/2 * time);
         }
@@ -347,7 +349,7 @@ export class AnimateScene {
 
         //encastre
         this_animation_time = 0.1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             this.grua.rotateY(speed/60 * time);
         }
@@ -355,7 +357,7 @@ export class AnimateScene {
         
         //espero 0.5 seg y desheredo el ala
         this_animation_time=0.5;
-        if(animation_time >= total_animation_time && this.ala_agarrada == true &&animation_time < total_animation_time +this_animation_time){
+        if(previous_time < total_animation_time && animation_time >= total_animation_time && this.ala_agarrada == true){
             this.scene.attach(this.wings[0]); //se ejecuta una sola vez
             this.ala_agarrada = false;
 
@@ -372,7 +374,7 @@ export class AnimateScene {
 
         //separo el ala
         this_animation_time=0.5;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed/120 * time );
             this.grua.rotateY(-speed/25 * time);
@@ -384,7 +386,7 @@ export class AnimateScene {
 
         //ACOMODO LA GRUA A SU POSICION DEFAULT
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed/2 * time - speed/140 * time);
             second_axis.rotateZ(-speed/2 * time );
@@ -404,12 +406,12 @@ export class AnimateScene {
 
         //se mueve la grua
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = -(3 * this.side_length) / this_animation_time;
             this.grua.translateZ(speed * time );
         }
         //sube el ala
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (0.4+TIE_measures.WINGS_FRAME_DIAMETER*2) / this_animation_time;
             this.wings[1].translateZ(speed * time);
         }
@@ -425,14 +427,14 @@ export class AnimateScene {
 
         //rota el primer eslabon
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ( -speed/3.4 * time );
         }
         total_animation_time+=this_animation_time;
         //se abre la mano
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = 30 / this_animation_time;
             hand.setApertura(THREE.MathUtils.degToRad(speed * time));
         }
@@ -443,7 +445,7 @@ export class AnimateScene {
 
         //se encastra
         this_animation_time = 0.1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ( - speed/16 * time );
             second_axis.rotateZ( speed/16 * time);
@@ -455,7 +457,7 @@ export class AnimateScene {
 
         //cierro la mano
         this_animation_time = 0.5;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = 12 / this_animation_time;
             hand.setApertura(THREE.MathUtils.degToRad(-speed * time));
         }
@@ -470,12 +472,12 @@ export class AnimateScene {
         //----------------------------------------
         //ala hija de mano
         this_animation_time = 2;
-        if(animation_time >= total_animation_time && this.ala_agarrada == false &&animation_time < total_animation_time +this_animation_time){
+        if(previous_time < total_animation_time && animation_time >= total_animation_time && this.ala_agarrada == false){
             hand.attach(this.wings[1]); //se ejecuta una sola vez
             this.ala_agarrada = true;
         }
         //vuelve a default
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed/3.4 * time + speed/16 * time);
             this.wings[1].rotateY(- speed/4.85 * time)
@@ -490,7 +492,7 @@ export class AnimateScene {
         //      GRUA SE MUEVE A FUSELAJE
         //----------------------------------------
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (this.side_length - TIE_measures.WINGS_FRAME_DIAMETER) / this_animation_time;
             this.grua.translateZ(speed * time );
         }
@@ -502,7 +504,7 @@ export class AnimateScene {
 
         //gira el ultimo brazo a 90 grados para orientar el ala
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             third_axis.rotateX(speed/2 * time);
         }
@@ -510,7 +512,7 @@ export class AnimateScene {
 
             //gira la base para dar espacio
         this_animation_time = 0.5;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             this.grua.rotateY(speed/60 * time);
         }
@@ -521,7 +523,7 @@ export class AnimateScene {
 
             //giran los eslabones para el encastre
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(-speed/2 * time + speed/140 * time);
             second_axis.rotateZ(speed/2 * time);
@@ -533,7 +535,7 @@ export class AnimateScene {
 
             //rota la muñeca para orientar el ala
         this_animation_time = 1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             wrist.rotateY(-speed/2 * time);
         }
@@ -544,7 +546,7 @@ export class AnimateScene {
 
             //encastre
         this_animation_time = 0.1;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             this.grua.rotateY(-speed/60 * time);
         }
@@ -552,7 +554,7 @@ export class AnimateScene {
 
             //espero 0.5 seg y desheredo el ala
         this_animation_time = 0.5;
-        if(animation_time >= total_animation_time && this.ala_agarrada == true && animation_time < total_animation_time +this_animation_time){
+        if(previous_time < total_animation_time && animation_time >= total_animation_time && this.ala_agarrada == true){
             this.scene.attach(this.wings[1]);
             this.ala_agarrada = false;
 
@@ -573,7 +575,7 @@ export class AnimateScene {
 
         //separo el ala
         this_animation_time = 0.5;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(speed/120 * time);
             this.grua.rotateY(speed/25 * time);
@@ -585,7 +587,7 @@ export class AnimateScene {
 
         //ACOMODO LA GRUA A SU POSICION DEFAULT
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
 
                 first_axis.rotateZ(speed/2 * time - speed/140 * time);
@@ -606,7 +608,7 @@ export class AnimateScene {
 
         //grua vuelve a su plataforma
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (this.side_length + TIE_measures.WINGS_FRAME_DIAMETER/2) / this_animation_time;
             this.grua.translateZ(speed * time);
         }
@@ -614,7 +616,7 @@ export class AnimateScene {
 
         //gira la base
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI/2) / this_animation_time;
             this.grua.rotateY(speed * time);
         }
@@ -622,7 +624,7 @@ export class AnimateScene {
 
         //giran los eslabones
         this_animation_time = 2;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
             first_axis.rotateZ(-speed/2.5 * time - speed/60 * time);
         }
@@ -633,12 +635,12 @@ export class AnimateScene {
         //----------------------------------------
         this_animation_time = 3;
 
-        if(animation_time >= total_animation_time && this.anclaje_terminado == false &&animation_time < total_animation_time +this_animation_time){
+        if(previous_time < total_animation_time && animation_time >= total_animation_time && this.anclaje_terminado == false){
             this.scene.attach(this.fuselage[0]); //se ejecuta una sola vez
             this.anclaje_terminado = true;
         }
 
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT/2) / this_animation_time;
             this.grua.translateY(-speed * time);
             this.piston.translateY(-speed * time);
@@ -650,7 +652,7 @@ export class AnimateScene {
         //----------------------------------------
 
         this_animation_time = 3;
-        if(animation_time>total_animation_time && animation_time<total_animation_time+this_animation_time){
+        if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = this.side_length / this_animation_time;
             this.door_wings.translateX(speed * time);
             this.door_fuselage.translateX(speed * time);
