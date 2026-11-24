@@ -157,7 +157,7 @@ function createMenu() {
 
 	//CAMARAS
     gui.add(params, 'camaraActual', ['ORBITAL', 'COCKPIT','HANGAR'])
-        .name('Cámara')
+        .name('Camera')
         .onChange((value) => {
 
             activeCamera = CAMERA[value];
@@ -170,7 +170,7 @@ function createMenu() {
 	
 	//ALAS
 	gui.add(params, 'wingVariants', ['GENERIC', 'BOMBER' , 'ESPECIAL'])
-        .name('Variantes de Alas')
+        .name('Wings Variants')
         .onChange((value) => {
 			switch(value){
 				case 'GENERIC': sceneManager.changeWing(1);
@@ -185,7 +185,7 @@ function createMenu() {
 
 	//PROPULSORES	
 	gui.add(params, 'engineVariants', ['NONE', 'HEXAGONAL' ,'CIRCULAR'])
-        .name('Propulsores')
+        .name('Engines')
         .onChange((value) => {
 			switch(value){
 				case 'NONE': sceneManager.changeEngine(0);
@@ -268,4 +268,19 @@ function createMenu() {
 	});
 
 	restart_buttonContainer.appendChild(restart_button);
+
+
+
+	//--------------------------------------
+	//				ILUMINACION
+	//--------------------------------------
+
+	const lightWindow = gui.addFolder('Ilumination');
+	lightWindow.add({ intensity: 0.5 }, 'intensity', 0, 10, 0.1)
+    .name('Ambient Light')
+    .onChange((value) => {
+		console.log(value);
+        sceneManager.changeIlumination(value);
+    });
+
 }

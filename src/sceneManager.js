@@ -23,13 +23,15 @@ export class SceneManager {
 		this.wingVariant = 1;
 		this.engine = 0;
 
+		//ILUMINACION
+		
 		const light = new THREE.DirectionalLight(0xffffff, 1);
 
 		light.position.set(1, 1, 1);
 		scene.add(light);
 
-		const ambientLight = new THREE.AmbientLight(0xffffff,1);
-		scene.add(ambientLight);
+		this.ambientLight = new THREE.AmbientLight(0xffffff,0.5);
+		scene.add(this.ambientLight);
 
 		const grid = new THREE.GridHelper(10, 10);
 		scene.add(grid);
@@ -168,6 +170,15 @@ export class SceneManager {
 		if (this.background) {
 		this.background.position.copy(this.cameras[CAMERA.ORBITAL].position);
 		}
+	}
+
+
+	//Iluminacion
+
+	changeIlumination(value){
+		this.scene.remove(this.ambientLight);
+		this.ambientLight = new THREE.AmbientLight(0xffffff,value);
+		this.scene.add(this.ambientLight);
 	}
 }
 

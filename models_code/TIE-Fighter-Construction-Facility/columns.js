@@ -118,6 +118,24 @@ export function buildColumns(Segments){
         map: texture_uv.columnaCuerpo,
         side: THREE.DoubleSide});
     const pilar = new THREE.Mesh(pilar_geometry,material_pilar);
+
+    //LiGTH
+    const ligth_geometry = buildPlane(side_length/4,side_length/2,1,1);
+    const material_ligth = new THREE.MeshStandardMaterial({
+        map: texture_uv.luzIndividual,
+        side: THREE.DoubleSide,
+        emissiveMap: texture_uv.luzIndividual,
+        emissive: 0xffffff,
+        emissiveIntensity:6,
+    })
+
+    const light = new THREE.Mesh(ligth_geometry,material_ligth);
+    light.rotateZ(-Math.PI/2);
+    light.rotateY(-Math.PI/2);
+    light.translateY((side_length/2 + 0.1));
+    
+    
+    
     
     //GROUPING
     const column = new THREE.Group();
@@ -135,6 +153,17 @@ export function buildColumns(Segments){
         
     column.add(second_base_clone);
     column.add(base_clone);
+    
+    
+    //ligths
+    for (let i = 0; i < 2; i++){
+        const newLigth = light.clone();
+
+        newLigth.position.y = -measures.TOTAL_HEIGHT/4
+                             + (i + 1) * measures.TOTAL_HEIGHT/6;
+
+        column.add(newLigth);
+    }
     
     base_clone.scale.y=-1
     second_base_clone.scale.y = -1;

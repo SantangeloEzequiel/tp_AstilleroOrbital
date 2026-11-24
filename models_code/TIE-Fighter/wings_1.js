@@ -330,7 +330,7 @@ export function createTieWings(){
 
     //wing_hexagon
     const hexagon = buildHexagon(1,2,WIDTH,HEIGHT,SIDE_LENGTH);
-    const material_hexagon = new THREE.MeshBasicMaterial({ 
+    const material_hexagon = new THREE.MeshStandardMaterial({ 
         side: THREE.DoubleSide,
         map: atlas_uv.PanelNegroGrande});
     const wing_hexagon = new THREE.Mesh(hexagon, material_hexagon);
@@ -338,7 +338,7 @@ export function createTieWings(){
     //wing_hexagon_border
     const hexagon_border = buildHexagonBorders(HEIGHT,WIDTH,SIDE_LENGTH,FRAME_DIAMETER,16,36);
 
-   const material_border_base = new THREE.MeshBasicMaterial({
+   const material_border_base = new THREE.MeshStandardMaterial({
     color: 0x767982
     });
 
@@ -377,8 +377,9 @@ export function createTieWings(){
     const material_pylon_front = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.pylonExterior,
-        normalMap: atlas_uv_normal.pylonExterior,
-        normalScale: new THREE.Vector2(0.1, 0.1),
+        //normalMap: atlas_uv_normal.pylonExterior,
+        //normalScale: new THREE.Vector2(1, 1),
+        color: new THREE.Color(7, 7, 7),
         metalness: 0.5,
         roughness: 1,
     });
@@ -387,7 +388,7 @@ export function createTieWings(){
         map : atlas_uv.pylonInterior,
         normalMap: atlas_uv_normal.pylonInterior,
         normalScale: new THREE.Vector2(0.1, 0.1),
-        metalness: 0.5,
+        metalness: 0,
         roughness: 1,
     });
     const material_pylon_border = new THREE.MeshStandardMaterial({

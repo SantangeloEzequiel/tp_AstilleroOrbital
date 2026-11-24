@@ -30,6 +30,8 @@ import piso_url
 import tiraLuces_url
     from './texture_maps/Tira_Luces.png';    
 
+import luzIndividual_url
+    from './texture_maps/Luz-individual.png';    
 
 import columnaCuerpo_url
     from './texture_maps/Columna_Cuerpo.png';
@@ -101,6 +103,9 @@ piso.minFilter = THREE.LinearMipmapLinearFilter;
 piso.generateMipmaps = true;
 
 export const tiraLuces =
+    loadTexture(tiraLuces_url);
+
+export const luzIndividual =
     loadTexture(tiraLuces_url);
 
 export const columnaCuerpo =

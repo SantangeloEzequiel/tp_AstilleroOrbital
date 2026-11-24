@@ -15,6 +15,16 @@ import {buildShip} from './buildTieFighter.js';
 
 export function buildHangar(){
 
+    //LUCES
+        const point_light = new THREE.PointLight(
+         0xffffff, // color
+         20,        // intensidad
+         measures.TOTAL_WIDTH/2,       // distancia máxima
+         1        // decaimiento
+         );
+    
+        point_light.position.set(0, -0.1, 0);
+
     const hangar = new THREE.Group();
 
     const spacing = measures.TOTAL_DEPTH / measures.TOP_RIELS_NUMBER;
@@ -88,6 +98,10 @@ export function buildHangar(){
         hangar.add(riel);
     }
 
+    
+        
+
+
     //columnas
     for(let i = 0; i < measures.LATERAL_COLUMNS_PER_SIDE; i++){
 
@@ -102,9 +116,29 @@ export function buildHangar(){
         column_clone.scale.x = -1;
         column_clone.position.x = -column.position.x;
 
+        //luces
+        const ligth = point_light.clone();
+        ligth.position.x+= measures.COLUMNS_SIDE/2 + 0.01;
+        const light_clone = ligth.clone();
+        light_clone.position.x+= measures.COLUMNS_SIDE + 0.01;
+        if(i % 4 === 0){
+            column.add(ligth);
+            column_clone.add(light_clone);
+        }
+
         hangar.add(column);
         hangar.add(column_clone);
     }
+
+
+    //LUCES TECHO
+
+    for(let i=0; i<2; i++){
+                const light_clone = point_light.clone();
+                light_clone.position.z = (i-0.5) * measures.TOTAL_DEPTH/2.5;
+                light_clone.position.y = measures.TOTAL_HEIGHT/4;
+                hangar.add(light_clone);
+            }
 
     return hangar;
 }

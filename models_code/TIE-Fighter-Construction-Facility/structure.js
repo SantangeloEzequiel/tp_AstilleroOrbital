@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 import * as texture_uv from './texture_uv.js'
+import * as normal_texture_uv from './normal_texture_uv.js'
 
 
 //----------
@@ -492,6 +493,7 @@ export function buildStructure(Segments){
     const back_geometry = buildPlane(width,height,widthSegments,heightSegments);
     const material_back = new THREE.MeshStandardMaterial({
         map: texture_uv.fondo,
+        normalMap: normal_texture_uv.fondo,
         side: THREE.DoubleSide});
     const back = new THREE.Mesh(back_geometry,material_back);
 
@@ -499,6 +501,8 @@ export function buildStructure(Segments){
     const walls_geometry = buildPlane(depth,height,depthSegments,heightSegments);
     const material_walls = new THREE.MeshStandardMaterial({
         map: texture_uv.pared,
+        normalMap: normal_texture_uv.pared,
+        normalScale: new THREE.Vector2(5, 5),
         side: THREE.DoubleSide});
     const wall1 = new THREE.Mesh(walls_geometry,material_walls);
     const wall2 = wall1.clone();
@@ -577,6 +581,30 @@ export function buildStructure(Segments){
     roof.position.y  =  height/2;
     frame_door.position.z = (depth+measures.DOOR_FRAME_DEPTH)/2;
     door.position.z=(depth+measures.DOOR_FRAME_DEPTH)/2;
+
+
+
+    //LIGTHS 
+        const ligth_geometry = buildPlane(measures.COLUMNS_SIDE/4,measures.COLUMNS_SIDE/2,1,1);
+        const material_ligth = new THREE.MeshStandardMaterial({
+            map: texture_uv.luzIndividual,
+            side: THREE.DoubleSide,
+            emissiveMap: texture_uv.luzIndividual,
+            emissive: 0xAAAAAA,
+            emissiveIntensity:3,
+        })
+    
+        const light = new THREE.Mesh(ligth_geometry,material_ligth);
+        light.rotateZ(-Math.PI/2);
+        //light.translateY((side_length/2 + 0.1));
+        light.position.z+=0.1;
+        
+       //CLONES
+        for(let i=0; i<2; i++){
+            const light_clone = light.clone();
+            light_clone.position.y = (i-0.5) * measures.TOTAL_DEPTH/2.5;
+            roof.add(light_clone);
+        }
 
     return structure;
 }
