@@ -29,6 +29,7 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
     const geometry = new THREE.BufferGeometry;
     const position = [];
     const uv = [];
+    const normals = [];
     //Creo el array de posiciones
 
     //se agranda
@@ -38,6 +39,7 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
             let position_width = -actual_row/2 + x * actual_row/widthSegments;
             let position_height = height /2 -y * height/heightSegments;
             position.push(position_width, position_height,0);
+            normals.push(0, 0, 1);
             
             //uv
             const u = (position_width + width / 2) / width;
@@ -53,6 +55,7 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
             let position_width = -actual_row/2 + x * actual_row/widthSegments;
             let position_height = height /2 -y * height/heightSegments;
             position.push(position_width, position_height,0);
+            normals.push(0, 0, 1);
             
             //uv
             const u = (position_width + width / 2) / width;
@@ -78,12 +81,13 @@ function buildHexagon(widthSegments, heightSegments,width,height,side_length){
     }
     
     //const uv[];
-    //array de uv ...
+    geometry.computeVertexNormals();
 
 
     geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(position),3));
     geometry.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(uv),2));
     geometry.setIndex(indices);
+    geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
 
     return geometry;
 }
@@ -377,9 +381,8 @@ export function createTieWings(){
     const material_pylon_front = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.pylonExterior,
-        //normalMap: atlas_uv_normal.pylonExterior,
-        //normalScale: new THREE.Vector2(1, 1),
-        color: new THREE.Color(7, 7, 7),
+        normalMap: atlas_uv_normal.pylonExterior,
+        normalScale: new THREE.Vector2(1, 1),
         metalness: 0.5,
         roughness: 1,
     });

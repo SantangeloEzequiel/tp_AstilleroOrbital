@@ -65,7 +65,7 @@ function loadTexture(url) {
         }
     );
 
-    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.colorSpace = THREE.NoColorSpace;
 
     return texture;
 }

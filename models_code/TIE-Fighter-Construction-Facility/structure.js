@@ -494,6 +494,7 @@ export function buildStructure(Segments){
     const material_back = new THREE.MeshStandardMaterial({
         map: texture_uv.fondo,
         normalMap: normal_texture_uv.fondo,
+        normalScale: new THREE.Vector2(1, 1),
         side: THREE.DoubleSide});
     const back = new THREE.Mesh(back_geometry,material_back);
 
@@ -502,7 +503,7 @@ export function buildStructure(Segments){
     const material_walls = new THREE.MeshStandardMaterial({
         map: texture_uv.pared,
         normalMap: normal_texture_uv.pared,
-        normalScale: new THREE.Vector2(5, 5),
+        normalScale: new THREE.Vector2(1, 1),
         side: THREE.DoubleSide});
     const wall1 = new THREE.Mesh(walls_geometry,material_walls);
     const wall2 = wall1.clone();

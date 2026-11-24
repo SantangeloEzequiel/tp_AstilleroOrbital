@@ -39,6 +39,10 @@ export class SceneManager {
 		const axes = new THREE.AxesHelper(3);
 		scene.add(axes);
 
+		//CAMERAS
+		this.cameras[CAMERA.HANGAR].position.set(0,HANGAR_measures.TOTAL_HEIGHT/2,-HANGAR_measures.TOTAL_DEPTH/2);
+		this.cameras[CAMERA.HANGAR].rotateY(Math.PI);
+
 		// SCRIPT
 
 		//FONDO 
