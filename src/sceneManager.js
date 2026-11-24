@@ -13,17 +13,21 @@ import { CAMERA } from './cameras.js';
 
 export class SceneManager {
 
-	constructor(scene,cameras,animationDone) {
+	constructor(scene,cameras) {
 
 		this.scene = scene;
 		this.cameras = cameras;
+		this.animationDone = false;
+
+		this.wingVariant = 1;
+		this.engine = 0;
 
 		const light = new THREE.DirectionalLight(0xffffff, 1);
 
 		light.position.set(1, 1, 1);
 		scene.add(light);
 
-		const ambientLight = new THREE.AmbientLight(0x666666);
+		const ambientLight = new THREE.AmbientLight(0xffffff);
 		scene.add(ambientLight);
 
 		const grid = new THREE.GridHelper(10, 10);
@@ -71,15 +75,21 @@ export class SceneManager {
 		const hangar = buildHangar();
 		scene.add(hangar);
 		hangar.translateY(HANGAR_measures.TOTAL_HEIGHT/2);
+
+
+		//SHIP
+		const ship = buildShip(1,0)
+		scene.add(ship);
+		ship.translateY(3);
 		
 	}
 
-	moveShip(keys,animationDone) {
+	moveShip(keys) {
     	const speed = 10;
 		const rotation_speed = 0.005;
 		const ship = this.scene.getObjectByName("ship");
 
-		if(animationDone=true){
+		if(this.animationDone==true){
     		if (keys.w) ship.translateZ(-(speed*SCALE));
     		if (keys.s) ship.translateZ(speed*SCALE);
     		if (keys.a) ship.rotateY((2*Math.PI*rotation_speed));
@@ -91,8 +101,54 @@ export class SceneManager {
 		}
 	}
 
-	changeShip(wingVariant,engine){
+	changeWing(wingVariant){
+		this.wingVariant = wingVariant;
+		this.changeShip();
+	}
 
+	changeEngine(engine){
+		this.engine = engine;
+		this.changeShip();
+	}
+
+	changeShip(){
+		if (this.animationDone === true) {
+    		
+			const ship = this.scene.getObjectByName("ship");
+
+    		if (ship) {
+    		    // Posición respecto de scene
+    		    const position = new THREE.Vector3();
+    		    ship.getWorldPosition(position);
+
+    		    // Rotación respecto de scene
+    		    const quaternion = new THREE.Quaternion();
+    		    ship.getWorldQuaternion(quaternion);
+
+    		    // Elimino la nave anterior
+    		    this.scene.remove(ship);
+
+    		    // Creo la nueva nave
+    		    const newShip = buildShip(this.wingVariant, this.engine);
+
+				// Transfiero la cámara cockpit
+    			const camera = this.cameras[CAMERA.COCKPIT];
+    			newShip.add(camera);		
+    			camera.position.set(0, 0, 0);
+    			camera.rotation.set(0, 0, 0);
+
+
+    		    newShip.position.copy(position);
+    		    newShip.quaternion.copy(quaternion);
+
+    		    newShip.name = "ship";
+    		    this.scene.add(newShip);
+    		}
+		}
+	}
+
+	isAnimationDone(isAnimationDone){
+		this.animationDone = isAnimationDone;
 	}
 
 	

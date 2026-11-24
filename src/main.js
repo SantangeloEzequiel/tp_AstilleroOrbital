@@ -58,6 +58,7 @@ let scene, renderer, container, sceneManager;
 
 //animation
 let animateScene, animationSpeed = 1, RESTART = false, isAnimating = false, isAnimationDone = false;
+let animate_button;
 
 function setupThreeJs() {
 	container = document.getElementById('container3D');
@@ -107,6 +108,15 @@ function animate() {
 	//ANIMATE SCRIPT
     if (isAnimating && isAnimationDone==false) {
         isAnimationDone = animateScene.animate(delta * animationSpeed);
+		
+		if (isAnimationDone){
+        	isAnimating = false;
+			animate_button.textContent = 'Finalized';
+        	animate_button.style.backgroundColor = '#444';
+
+			sceneManager.isAnimationDone(isAnimationDone);
+			sceneManager.changeShip();
+		}
     }
 
 	if(RESTART){
@@ -116,7 +126,7 @@ function animate() {
 
 	switch(params.camaraActual){
 		case 'COCKPIT' :{
-			sceneManager.moveShip(keys,isAnimationDone);
+			sceneManager.moveShip(keys);
 			break;
 		}
 		case 'ORBITAL':{
@@ -140,6 +150,7 @@ animate();
 //---------------------------------------------------------------------------
 //								MENU
 //---------------------------------------------------------------------------
+
 function createMenu() {
 	const gui = new dat.GUI({ width: 300 });
 
@@ -161,14 +172,29 @@ function createMenu() {
 	gui.add(params, 'wingVariants', ['GENERIC', 'BOMBER' , 'ESPECIAL'])
         .name('Variantes de Alas')
         .onChange((value) => {
-            //sceneManager.c
+			switch(value){
+				case 'GENERIC': sceneManager.changeWing(1);
+					break;
+				case 'BOMBER': sceneManager.changeWing(2);
+					break;
+				case 'ESPECIAL': sceneManager.changeWing(3);
+					break;					
+			}
+            
         });
 
 	//PROPULSORES	
 	gui.add(params, 'engineVariants', ['NONE', 'HEXAGONAL' ,'CIRCULAR'])
-        .name('Cámara')
+        .name('Propulsores')
         .onChange((value) => {
-			 //sceneManager.c
+			switch(value){
+				case 'NONE': sceneManager.changeEngine(0);
+					break;
+				case 'HEXAGONAL': sceneManager.changeEngine(1);
+					break;
+				case 'CIRCULAR': sceneManager.changeEngine(2);
+					break;					
+			}
         });
 	
 	//----------------------------------------
@@ -216,13 +242,12 @@ function createMenu() {
 	button.style.border = 'none';
 	button.style.cursor = 'pointer';
 
-	const animate_button = button.cloneNode(true);
+	animate_button = button.cloneNode(true);
 	animate_button.addEventListener('click', (event) => {
 	    event.stopPropagation();
 
 	    isAnimating = !isAnimating;
-	    animate_button.textContent =isAnimationDone? 'Finalized' : isAnimating ? 'Pause' : 'Play';
-	    animate_button.style.backgroundColor = isAnimating ? '#2ecc71' : '#444';
+	    animate_button.textContent = isAnimationDone? 'Finalized' : isAnimating ? 'Pause' : 'Play';
 	});
 
 	buttonContainer.appendChild(animate_button);

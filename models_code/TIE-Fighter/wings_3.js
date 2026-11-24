@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
+import * as atlas_uv_normal from './atlas_uv_normal.js'
 
 
 

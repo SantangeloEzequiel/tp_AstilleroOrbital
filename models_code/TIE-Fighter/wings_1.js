@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
+import * as atlas_uv_normal from './atlas_uv_normal.js'
 
 
 
@@ -341,14 +342,21 @@ export function createTieWings(){
     color: 0x767982
     });
 
-    const material_border = new THREE.MeshBasicMaterial({
+    const material_border = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.borderSeccion,
         transparent: true,
         alphaTest: 0.01,
         polygonOffset: true,
         polygonOffsetFactor: -1,
-        polygonOffsetUnits: -1
+        polygonOffsetUnits: -1,
+        normalMap: atlas_uv_normal.borderSeccion,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.borderSeccion,
+        emissiveIntensity: 0.5
     });
 
     const wing_hexagon_border = new THREE.Group();
@@ -369,17 +377,38 @@ export function createTieWings(){
     const hexagon_pylon_back = buildHexagon(20, 60,PYLONS_WIDTH,PYLONS_HEIGHT,pylonSideLength);
     const hexagon_pylon_border = buildHexagonBorders(PYLONS_HEIGHT,PYLONS_WIDTH,pylonSideLength,FRAME_DIAMETER,20,60,2.5);
 
-    const material_pylon_front = new THREE.MeshBasicMaterial({
+    const material_pylon_front = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        map: atlas_uv.pylonExterior
+        map: atlas_uv.pylonExterior,
+        normalMap: atlas_uv_normal.pylonExterior,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.pylonExterior,
+        emissiveIntensity: 0.5
     });
-    const material_pylon_back = new THREE.MeshBasicMaterial({
+    const material_pylon_back = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        map : atlas_uv.pylonInterior
+        map : atlas_uv.pylonInterior,
+        normalMap: atlas_uv_normal.pylonInterior,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.pylonInterior,
+        emissiveIntensity: 0.5
     });
-    const material_pylon_border = new THREE.MeshBasicMaterial({
+    const material_pylon_border = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        map : atlas_uv.borderSeccion
+        map : atlas_uv.borderSeccion,
+        normalMap: atlas_uv_normal.borderSeccion,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.borderSeccion,
+        emissiveIntensity: 0.5
     });
 
     const pylon_front = new THREE.Mesh(hexagon_pylon_front, material_pylon_front);

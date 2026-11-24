@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import { ParametricGeometry } from 'three/addons/geometries/ParametricGeometry.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import * as atlas_uv from './atlas_uv.js'
+import * as atlas_uv_normal from './atlas_uv_normal.js'
+
 
 
 //Medidas
@@ -160,27 +162,34 @@ export function createTieFuselage() {
 
     const extraLength = sphereLength / 2 - radius;
 
-    const sphere_flattened = buildSphereFlattened(
-        radius,
-        Math.PI / 3.5,
-        2,
-        extraLength,
-        DIAMETER_EXT,
-        64,
-        64
-    );
+    const sphere_flattened = buildSphereFlattened( radius, Math.PI / 3.5, 2, extraLength, DIAMETER_EXT, 64, 64);
 
-    const material_sphere = new THREE.MeshBasicMaterial({
-    map: atlas_uv.panelFuselage});
+    const material_sphere = new THREE.MeshStandardMaterial({
+        map: atlas_uv.panelFuselage,
+        normalMap: atlas_uv_normal.panelFuselage,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.panelFuselage,
+        emissiveIntensity: 0.5
+    });
     const fuselage_center = new THREE.Mesh(sphere_flattened, material_sphere);
     
     
     const tube = buildTube(tubeLength, DIAMETER_EXT, 64, 64);
     atlas_uv.panelBrazos.wrapT = THREE.RepeatWrapping            
-    const material_tube = new THREE.MeshBasicMaterial({ 
-            side : THREE.DoubleSide,
-            map: atlas_uv.panelBrazos
-            });
+    const material_tube = new THREE.MeshStandardMaterial({ 
+        side : THREE.DoubleSide,
+        map: atlas_uv.panelBrazos,
+        normalMap: atlas_uv_normal.panelBrazos,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        metalness: 0.5,
+        roughness: 1,
+        emissive: 0xffffff,
+        emissiveMap: atlas_uv.panelBrazos,
+        emissiveIntensity: 0.4
+    });
     
     const tube1 = new THREE.Mesh(tube, material_tube);
     const tube2 = new THREE.Mesh(tube, material_tube);
@@ -201,8 +210,14 @@ export function createTieFuselage() {
 
     //Cabina
     const semi_sphere = buildSemiSphere(DIAMETER_COCKPIT,Math.PI/2,64,64);
-    const material_cockpit = new THREE.MeshBasicMaterial({ 
-            map: atlas_uv.aroCabinaNegro});
+    const material_cockpit = new THREE.MeshStandardMaterial({
+        map: atlas_uv.aroCabinaNegro,
+        
+        metalness: 0.8,
+        roughness: 0.2,
+        
+        envMapIntensity: 1.5    
+    });
 
     const cockpit = new THREE.Mesh(semi_sphere,material_cockpit);
     cockpit.rotateX(Math.PI/2);
