@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import fondo from '../images/fondo_galaxia.png';
+import planetTexture from '../images/Mapa_Planetario.png';
 import { buildShip} from '../models_code/buildTieFighter.js';
 import { buildHangar} from '../models_code/buildHangar.js';
 import * as HANGAR_measures from '../models_code/TIE-Fighter-Construction-Facility/blueprints/measures.js';
@@ -27,7 +28,7 @@ export class SceneManager {
 		light.position.set(1, 1, 1);
 		scene.add(light);
 
-		const ambientLight = new THREE.AmbientLight(0xffffff);
+		const ambientLight = new THREE.AmbientLight(0xffffff,1);
 		scene.add(ambientLight);
 
 		const grid = new THREE.GridHelper(10, 10);
@@ -47,7 +48,7 @@ export class SceneManager {
 		
 			texture.repeat.set(1, 1);
 
-		    const sphere_background = new THREE.SphereGeometry(500, 60, 60);
+		    const sphere_background = new THREE.SphereGeometry(1000, 60, 60);
 		
 		    const material = new THREE.MeshBasicMaterial({
 		        map: texture,
@@ -60,15 +61,26 @@ export class SceneManager {
 
 		//PLANETA
 
-		 const sphere_planet = new THREE.SphereGeometry(100, 64, 64);
+		 const sphere_planet = new THREE.SphereGeometry(300, 64, 64);
+		 
+		const planet_texture = new THREE.TextureLoader().load(planetTexture);
+
+		planet_texture.colorSpace = THREE.SRGBColorSpace;
+		planet_texture.anisotropy = 16;
+		planet_texture.magFilter = THREE.LinearFilter;
+		planet_texture.minFilter = THREE.LinearMipmapLinearFilter;
 		
-		    const material_planet = new THREE.MeshBasicMaterial({
-		        color: 0x887755,
-		        side: THREE.DoubleSide
-		    });
+		   const material_planet = new THREE.MeshStandardMaterial({
+		    map: planet_texture,
+		    roughness: 1,
+		    metalness: 0,
+			//emissive : 0xffffff,
+			//emissiveMap: planet_texture,
+			//emissiveIntensity: 0.2,
+		});
 		
 		    const planet = new THREE.Mesh(sphere_planet, material_planet);
-			planet.position.set(-100, -70 ,300);
+			planet.position.set(-250, -200 ,500);
 		    scene.add(planet);
 		
 		//HANGAR
@@ -78,9 +90,9 @@ export class SceneManager {
 
 
 		//SHIP
-		const ship = buildShip(1,0)
+		/*const ship = buildShip(1,0)
 		scene.add(ship);
-		ship.translateY(3);
+		ship.translateY(3);*/
 		
 	}
 

@@ -5,6 +5,7 @@ import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js'
 
 import {WINGS_FRAME_DIAMETER} from '../TIE-Fighter/blueprints/measures.js';
 
+import * as texture_uv from './texture_uv.js'
 
 function buildPlane(width,heigth,withSegments,heigthSegments){
     const geometry = new ParametricGeometry(
@@ -106,23 +107,23 @@ export function buildRielsSupport(Segments){
     const support_height = measures.SUPPORT_ARM_HEIGHT
 
     //utilizo cantidad de segmentos proporcionales al tamaño
-    const radialSegments = 120;
-    const widthSegments = 120;
-    const heightSegments = 120;
-    const depthSegments = 120;
+    const radialSegments = 16;
+    const widthSegments = 5;
+    const heightSegments = 5;
+    const depthSegments = 5;
 
     //RIEL Suport
-    const riel_suport_geometry = buildSemiBoxWithEspesor(riels_side_length,riels_side_length,riels_side_length,support_espesor
+    const riel_suport_geometry = buildSemiBoxWithEspesor(riels_side_length+ support_espesor * 2 + 0.01,riels_side_length,riels_side_length,support_espesor
         ,widthSegments,heightSegments,depthSegments);
     const material_riel_suport = new THREE.MeshBasicMaterial({
-        color: 0x888888,
+        color: 0x111111,
         side: THREE.DoubleSide});
     const riel_suport = new THREE.Mesh(riel_suport_geometry,material_riel_suport);
 
     //union
     const union_geometry = buildSphere(support_radius,radialSegments,widthSegments);
     const material_union = new THREE.MeshBasicMaterial({
-        color: 0x888888,
+        color: 0x111111,
         side: THREE.DoubleSide});
     const union = new THREE.Mesh(union_geometry,material_union);
     
@@ -130,7 +131,7 @@ export function buildRielsSupport(Segments){
     const wing_suport_geometry = buildSemiBoxWithEspesor(wing_espesor+support_espesor,riels_side_length,support_height,support_espesor
         ,widthSegments,heightSegments,depthSegments);
     const material_wing_suport = new THREE.MeshBasicMaterial({
-        color: 0x888888,
+        color: 0x111111,
         side: THREE.DoubleSide});
     const wing_suport = new THREE.Mesh(wing_suport_geometry,material_wing_suport);
     
@@ -143,7 +144,7 @@ export function buildRielsSupport(Segments){
 
     riel_suport.scale.y=-1;
     riel_suport.rotateY(Math.PI/2);
-    riel_suport.translateY(riels_side_length + support_radius * 0.8);
+    riel_suport.translateY(riels_side_length + support_radius * 0.8 - support_espesor - 0.01);
     wing_suport.translateY(- (support_height + support_radius * 0.8))
 
     return suport;

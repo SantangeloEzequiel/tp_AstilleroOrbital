@@ -3,6 +3,8 @@ import * as measures from './blueprints/measures.js';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
+import * as texture_uv from './texture_uv.js'
+
 //-------------------
 //  RIEL GEOMETRY
 //-------------------
@@ -110,8 +112,8 @@ export function buildRiels(Segments){
 
     //RIEL
     const riel_geometry = buildRiel(side_length,espesor,sideSegments,espesorSegments);
-    const material_riel = new THREE.MeshBasicMaterial({
-        color: 0x111111,
+    const material_riel = new THREE.MeshStandardMaterial({
+        color:0x777777,
         side: THREE.DoubleSide});
     const riel_unit = new THREE.Mesh(riel_geometry,material_riel);
     riel_unit.scale.x = 2;

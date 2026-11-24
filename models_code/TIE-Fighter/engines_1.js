@@ -91,7 +91,7 @@ export function createTieEngines(){
 
     //engine border
     const plane_ring_geometry = buildPlaneRingGeometry(EXTERIOR_DIAMETER/2,CENTER_DIAMETER/2,DEPTH,120,120);
-    const material_border = new THREE.MeshBasicMaterial({
+    const material_border = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.barrasEstructura
     });
@@ -100,7 +100,7 @@ export function createTieEngines(){
     
     //engine center
     const engine_center_geometry = buildEngineCenterGeometry(CENTER_DIAMETER/2,HEXAGON_DIAMETER/2,120,120);
-    const material_center = new THREE.MeshBasicMaterial({
+    const material_center = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         //map: atlas_uv.piezasRojas
         color: 0x777777,
@@ -109,7 +109,7 @@ export function createTieEngines(){
 
     //BASE
     const circle_geometry = buildCircleGeometry((EXTERIOR_DIAMETER/2)/2,120,120);
-    const material_base = new THREE.MeshBasicMaterial({
+    const material_base = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.panelNegro
     });

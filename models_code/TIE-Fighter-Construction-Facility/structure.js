@@ -3,6 +3,8 @@ import * as measures from './blueprints/measures.js';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
+import * as texture_uv from './texture_uv.js'
+
 
 //----------
 //  PLANE
@@ -72,11 +74,31 @@ function buildFloorWithHoles(width, depth, holes) {
         }
     }
 
-    return BufferGeometryUtils.mergeGeometries(
+    const geometry = BufferGeometryUtils.mergeGeometries(
         geometries,
         false
     );
+
+    //UV
+    const position = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+
+    for (let i = 0; i < position.count; i++) {
+
+        const x = position.getX(i);
+        const z = position.getZ(i);
+
+        const u = (x + width / 2) / width;
+        const v = (depth / 2 - z) / depth;
+
+        uv.setXY(i, u, v);
+    }
+
+    uv.needsUpdate = true;
+
+    return geometry;
 }
+
 
 
 //----------
@@ -123,7 +145,24 @@ function buildOctogonalPlane(width,heigth,proportion,withSegments,heigthSegments
             target.set(x,y,0);
         },withSegments,heigthSegments
     )
-    //uv
+    
+    //UV
+    const position = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+
+    for(let i = 0; i < position.count; i++){
+
+        const x = position.getX(i);
+        const y = position.getY(i);
+
+        uv.setXY(
+            i,
+            (x + width/2) / width,
+            (y + heigth/2) / heigth
+        );
+    }
+
+    uv.needsUpdate = true;
     return geometry;
 }
 
@@ -150,8 +189,22 @@ function buildDiagonalWalls(width,height,depth,proportion,heightSegments,depthSe
             depthSegments
         );
 
+        //UV
+        const uv = geometry.attributes.uv;
+
+        for(let j = 0; j < uv.count; j++){
+        
+            const u = uv.getX(j);
+            const v = uv.getY(j);
+        
+            uv.setXY(j, v, u);
+        }
+
+        uv.needsUpdate = true;
         diagonal_walls.push(geometry);
     }
+
+    
     return diagonal_walls;
 }
 
@@ -181,6 +234,68 @@ function buildExterior(width,height,depth,proportion,proportion_exterior_heigth,
     roof.translate(0,height*proportion_exterior_heigth/2,0);
 
     const diagonal_walls = buildDiagonalWalls(width,height * proportion_exterior_heigth,depth,proportion,heigthSegments,depthSegments);
+
+        //UV
+        const tile_width = 80;
+        const tile_height = 40;
+
+        const exterior_height = height * proportion_exterior_heigth;
+
+        const diagonal_length = Math.hypot(
+            width * (1 - proportion) / 2,
+            exterior_height * (1 - proportion) / 2
+        );
+
+        //Intercambio UV del techo y piso
+        for(const geometry of [roof, floor]){
+        
+            const uv = geometry.attributes.uv;
+        
+            for(let i = 0; i < uv.count; i++){
+            
+                const u = uv.getX(i);
+                const v = uv.getY(i);
+            
+                uv.setXY(i, v, u);
+            }
+        
+            uv.needsUpdate = true;
+        }
+
+        //Dimensiones reales de cada cara
+        const faces = [
+            [back, width, exterior_height],
+            [wall1, depth, exterior_height * proportion],
+            [wall2, depth, exterior_height * proportion],
+            [floor, depth, width * proportion],
+            [roof, depth, width * proportion],
+        
+            ...diagonal_walls.map(geometry => [
+                geometry,
+                depth,
+                diagonal_length
+            ])
+        ];
+
+        //Escalado de UV
+        for(const [geometry, face_width, face_height] of faces){
+        
+            const uv = geometry.attributes.uv;
+        
+            for(let i = 0; i < uv.count; i++){
+            
+                const u = uv.getX(i);
+                const v = uv.getY(i);
+            
+                uv.setXY(
+                    i,
+                    u * face_width / tile_width,
+                    v * face_height / tile_height
+                );
+            }
+        
+            uv.needsUpdate = true;
+        }
 
     return BufferGeometryUtils.mergeGeometries(
                 [back,wall1,wall2,floor,roof,...diagonal_walls],
@@ -226,6 +341,23 @@ function buildOctogonalRing(width,heigth,proportion,interProportion,scaleInternW
         },widthSegments,heightSegments
     );
 
+    const position = geometry.attributes.position;
+    const uv = geometry.attributes.uv;
+
+    for(let i = 0; i < position.count; i++){
+
+        const x = position.getX(i);
+        const y = position.getY(i);
+
+        uv.setXY(
+            i,
+            (x + width/2) / width,
+            (y + heigth/2) / heigth
+        );
+    }
+
+    uv.needsUpdate = true;
+
     return geometry;
 }
 
@@ -252,7 +384,63 @@ function buildOctogonalDepth(width,heigth,proportion,depth,heightSegments,widthS
             target.set(x,y,z);
         },widthSegments,heightSegments
     )
-    //uv
+    ///UV
+
+        const tile_width = 80;
+        const tile_height = 40;
+
+        const lengths = [];
+        let perimeter = 0;
+
+        //Corro la textura 
+        const offset_u = 0.25;
+        const offset_v = 0.3;
+
+        //Longitud de cada lado
+        for(let i = 0; i < 8; i++){
+        
+            const A = vertex[i];
+            const B = vertex[(i + 1) % 8];
+        
+            const length = A.distanceTo(B);
+        
+            lengths.push(length);
+            perimeter += length;
+        }
+
+        //Cantidad de repeticiones sobre el perimetro
+        const repetitions = Math.max(
+            1,
+            Math.round(perimeter / tile_height)
+        );
+
+        const uv = geometry.attributes.uv;
+
+        for(let i = 0; i < uv.count; i++){
+        
+            const u = uv.getX(i);
+            const v = uv.getY(i);
+        
+            const side = Math.min(7, Math.floor(u * 8));
+            const local_u = u * 8 - side;
+        
+            let distance = 0;
+        
+            for(let j = 0; j < side; j++){
+            
+                distance += lengths[j];
+            }
+        
+            distance += local_u * lengths[side];
+        
+            uv.setXY(
+                i,
+                (1 - v) * depth / tile_width,
+                distance / perimeter * repetitions
+            );
+        }
+
+        uv.needsUpdate = true;
     return geometry;
 }
 
@@ -302,15 +490,15 @@ export function buildStructure(Segments){
 
     //BACK
     const back_geometry = buildPlane(width,height,widthSegments,heightSegments);
-    const material_back = new THREE.MeshBasicMaterial({
-        color: 0x555577,
+    const material_back = new THREE.MeshStandardMaterial({
+        map: texture_uv.fondo,
         side: THREE.DoubleSide});
     const back = new THREE.Mesh(back_geometry,material_back);
 
     //LATERAL WALLS
     const walls_geometry = buildPlane(depth,height,depthSegments,heightSegments);
-    const material_walls = new THREE.MeshBasicMaterial({
-        color: 0x557755,
+    const material_walls = new THREE.MeshStandardMaterial({
+        map: texture_uv.pared,
         side: THREE.DoubleSide});
     const wall1 = new THREE.Mesh(walls_geometry,material_walls);
     const wall2 = wall1.clone();
@@ -320,8 +508,8 @@ export function buildStructure(Segments){
     
     //ROOF
     const roof_geometry = buildPlane(width,depth,widthSegments,depthSegments);
-    const material_roof = new THREE.MeshBasicMaterial({
-        color: 0x775555,
+    const material_roof = new THREE.MeshStandardMaterial({
+        map: texture_uv.techo,
         side: THREE.DoubleSide});
     const roof = new THREE.Mesh(roof_geometry,material_roof);
     roof.rotateX(Math.PI/2);
@@ -334,24 +522,28 @@ export function buildStructure(Segments){
     { x: side_length, z: 0, width: side_length, depth: side_length },
     { x: 0, z: -side_length * 1.5, width: side_length * 4, depth: side_length }];
     const floor_geometry = buildFloorWithHoles(width, depth, holes);
-    const material_floor = new THREE.MeshBasicMaterial({
-        color: 0x775555,
-        side: THREE.DoubleSide});
+    const material_floor = new THREE.MeshStandardMaterial({
+        map: texture_uv.piso,
+        side: THREE.DoubleSide,
+        metalness: 0.5,
+        roughness: 0.3,
+        envMapIntensity: 1.5  
+        });
     const floor = new THREE.Mesh(floor_geometry,material_floor);
     //floor.rotateX(-Math.PI/2);
 
     //EXTERIOR
     const exterior_geometry = buildExterior(width,height,depth,proportion,proportion_exterior_heigth,widthSegments,heightSegments,depthSegments);
-    const material_exterior = new THREE.MeshBasicMaterial({
-        color: 0x777777,
+    const material_exterior = new THREE.MeshStandardMaterial({
+        map:texture_uv.exterior,
         side: THREE.DoubleSide});
     const exterior = new THREE.Mesh(exterior_geometry,material_exterior);
 
     //FRAME DOOR
     const frame_door_geometry = buildOctogonalToroid(width,height,proportion,proportion_exterior_heigth,measures.DOOR_FRAME_DEPTH,measures.DOOR_FRAME_WIDTH,measures.DOOR_PROPORTION_OCTAGON_FRAME,
         heightSegments,widthSegments);
-    const material_frame_door = new THREE.MeshBasicMaterial({
-        color: 0x777777,
+    const material_frame_door = new THREE.MeshStandardMaterial({
+        map:texture_uv.exterior,
         side: THREE.DoubleSide});
     const frame_door = new THREE.Mesh(frame_door_geometry,material_frame_door);
 
@@ -362,7 +554,7 @@ export function buildStructure(Segments){
 
     const door_geometry = buildOctogonalDepth(width * scaleInternWidth ,proportion_exterior_heigth*height * scaleInternHeight,measures.DOOR_PROPORTION_OCTAGON_FRAME
         , measures.DOOR_FRAME_DEPTH,depthSegments,octogonalSegments);
-    const material_door = new THREE.MeshBasicMaterial({
+    const material_door = new THREE.MeshStandardMaterial({
         color: 0x111111,
         side: THREE.DoubleSide});
     const door = new THREE.Mesh(door_geometry,material_door);

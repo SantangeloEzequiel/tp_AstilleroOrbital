@@ -3,6 +3,8 @@ import * as measures from './blueprints/measures.js';
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
+import * as texture_uv from './texture_uv.js'
+
 
 //-------------------
 //      _  
@@ -99,21 +101,21 @@ export function buildColumns(Segments){
 
     //BASE
     const base_geometry = buildRectangulePiramid(pylon_length,side_length,pylon_height,widthSegments,depthSegments);
-    const material_base = new THREE.MeshBasicMaterial({
-        color: 0x222222,
+    const material_base = new THREE.MeshStandardMaterial({
+        map: texture_uv.columnaBase,
         side: THREE.DoubleSide});
     const base = new THREE.Mesh(base_geometry,material_base);
 
     //SECOND BASE
-    const second_base_geometry = buildRectangulePiramid(pylon_length/2,side_length,proportion_pylon_height*pylon_height,widthSegments,depthSegments);
-    const material_second_base = new THREE.MeshBasicMaterial({
-        color: 0x222222,
+    const second_base_geometry = buildRectangulePiramid(pylon_length/2,side_length-0.1,proportion_pylon_height*pylon_height,widthSegments,depthSegments);
+    const material_second_base = new THREE.MeshStandardMaterial({
+        map: texture_uv.columnaBase,
         side: THREE.DoubleSide});
     const second_base = new THREE.Mesh(second_base_geometry,material_second_base);
     //PILAR
-    const pilar_geometry = buildSemiBox(side_length,side_length,total_height,widthSegments,heightSegments);
-    const material_pilar = new THREE.MeshBasicMaterial({
-        color: 0x222222,
+    const pilar_geometry = buildSemiBox(side_length+0.1,side_length+0.1,total_height,widthSegments,heightSegments);
+    const material_pilar = new THREE.MeshStandardMaterial({
+        map: texture_uv.columnaCuerpo,
         side: THREE.DoubleSide});
     const pilar = new THREE.Mesh(pilar_geometry,material_pilar);
     

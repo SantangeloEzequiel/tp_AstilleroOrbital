@@ -352,7 +352,7 @@ export function createTieWings(){
     //wing body
     const hexagonal_curve = buildHexagonalCurve(HEIGHT,WIDTH,DEPTH,60,60);
     
-    const material_hexagonal_curve = new THREE.MeshBasicMaterial({
+    const material_hexagonal_curve = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.PanelNegroGrande
     });
@@ -362,7 +362,7 @@ export function createTieWings(){
     //wing_border
     const hexagon_curve_border = buildHexagonCurveBorders(HEIGHT,WIDTH,DEPTH,FRAME_DIAMETER,60,60);
     
-    const material_hexagonal_curve_border = new THREE.MeshBasicMaterial({
+    const material_hexagonal_curve_border = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.borderSeccion
         });
@@ -379,11 +379,11 @@ export function createTieWings(){
     //El borde está definido en Y=[0,PYLONS_HEIGHT] y después se centra.
     curvePylonToWing(hexagon_pylon_border,-PYLONS_HEIGHT/2);
  
-    const material_pylon = new THREE.MeshBasicMaterial({
+    const material_pylon = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.pylonInterior
     });
-    const material_pylon_border = new THREE.MeshBasicMaterial({
+    const material_pylon_border = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
         map: atlas_uv.borderSeccion
     });

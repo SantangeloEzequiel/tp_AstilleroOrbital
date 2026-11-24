@@ -170,9 +170,6 @@ export function createTieFuselage() {
         normalScale: new THREE.Vector2(0.1, 0.1),
         metalness: 0.5,
         roughness: 1,
-        emissive: 0xffffff,
-        emissiveMap: atlas_uv.panelFuselage,
-        emissiveIntensity: 0.5
     });
     const fuselage_center = new THREE.Mesh(sphere_flattened, material_sphere);
     
@@ -186,9 +183,6 @@ export function createTieFuselage() {
         normalScale: new THREE.Vector2(0.1, 0.1),
         metalness: 0.5,
         roughness: 1,
-        emissive: 0xffffff,
-        emissiveMap: atlas_uv.panelBrazos,
-        emissiveIntensity: 0.4
     });
     
     const tube1 = new THREE.Mesh(tube, material_tube);
@@ -212,10 +206,10 @@ export function createTieFuselage() {
     const semi_sphere = buildSemiSphere(DIAMETER_COCKPIT,Math.PI/2,64,64);
     const material_cockpit = new THREE.MeshStandardMaterial({
         map: atlas_uv.aroCabinaNegro,
-        
-        metalness: 0.8,
-        roughness: 0.2,
-        
+
+        metalness: 0.2,
+        roughness: 0.4,
+
         envMapIntensity: 1.5    
     });
 
