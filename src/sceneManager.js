@@ -13,7 +13,7 @@ import { CAMERA } from './cameras.js';
 
 export class SceneManager {
 
-	constructor(scene,cameras) {
+	constructor(scene,cameras,animationDone) {
 
 		this.scene = scene;
 		this.cameras = cameras;
@@ -31,6 +31,8 @@ export class SceneManager {
 
 		const axes = new THREE.AxesHelper(3);
 		scene.add(axes);
+
+		// SCRIPT
 
 		//FONDO 
 		// creo una esfera, la escalo en -1 de alguna coordenada para que la textura se vea de adentro, y le pongo la textura de galaxia
@@ -64,45 +66,33 @@ export class SceneManager {
 		    const planet = new THREE.Mesh(sphere_planet, material_planet);
 			planet.position.set(-100, -70 ,300);
 		    scene.add(planet);
-
-		// SCRIPT
 		
-		//Hangar
-		
+		//HANGAR
 		const hangar = buildHangar();
 		scene.add(hangar);
 		hangar.translateY(HANGAR_measures.TOTAL_HEIGHT/2);
 		
-		//NAVES
-		
-		this.ships = [];
-		this.ships[0]=buildShip(1,1);
-		//anido la camara a ship1
-		this.ships[0].add(this.cameras[CAMERA.COCKPIT]);
-
-		this.ships[1]=buildShip(2,0);
-		this.ships[2]=buildShip(3,0);
-
-		this.ships[0].position.set(0,5,0);
-		this.ships[1].position.set(5,5,0);
-		this.ships[2].position.set(-5,5,0);
-
-		//for(let number in this.ships)
-		//	scene.add(this.ships[number]); 
 	}
 
-	moveShip(keys) {
+	moveShip(keys,animationDone) {
     	const speed = 10;
 		const rotation_speed = 0.005;
+		const ship = this.scene.getObjectByName("ship");
 
-    	if (keys.w) this.ships[0].translateZ(-(speed*SCALE));
-    	if (keys.s) this.ships[0].translateZ(speed*SCALE);
-    	if (keys.a) this.ships[0].rotateY((2*Math.PI*rotation_speed));
-    	if (keys.d) this.ships[0].rotateY(-(2*Math.PI*rotation_speed));
-		if (keys.e) this.ships[0].rotateZ(-(2*Math.PI*rotation_speed));
-		if (keys.q) this.ships[0].rotateZ((2*Math.PI*rotation_speed));
-		if (keys[' ']) this.ships[0].rotateX((2*Math.PI*rotation_speed));
-		if (keys['control']) this.ships[0].rotateX(-(2*Math.PI*rotation_speed));
+		if(animationDone=true){
+    		if (keys.w) ship.translateZ(-(speed*SCALE));
+    		if (keys.s) ship.translateZ(speed*SCALE);
+    		if (keys.a) ship.rotateY((2*Math.PI*rotation_speed));
+    		if (keys.d) ship.rotateY(-(2*Math.PI*rotation_speed));
+			if (keys.e) ship.rotateZ(-(2*Math.PI*rotation_speed));
+			if (keys.q) ship.rotateZ((2*Math.PI*rotation_speed));
+			if (keys[' ']) ship.rotateX((2*Math.PI*rotation_speed));
+			if (keys['control']) ship.rotateX(-(2*Math.PI*rotation_speed));
+		}
+	}
+
+	changeShip(wingVariant,engine){
+
 	}
 
 	

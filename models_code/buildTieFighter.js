@@ -21,7 +21,7 @@ export function buildShip(wingVariant,engineVariant){
 		case 1 : {
 			ship1_wings1 = createTieWings_1();
 			ship1_wings2 = createTieWings_1();
-			wingOffset = (measures.FUSELAGE_LENGTH - measures.WINGS_FRAME_DIAMETER)/2;
+			wingOffset = measures.FUSELAGE_LENGTH/2;
 			ship1_wings2.scale.set(1,1,-1);
 			break;
 		}

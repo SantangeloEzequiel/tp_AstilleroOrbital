@@ -54,8 +54,10 @@ let engine0,engine1,engine2;
 
 
 //scene
-let scene, renderer, container, sceneManager, animateScene, isAnimating = false;
-let animationSpeed = 1, RESTART = false;
+let scene, renderer, container, sceneManager;
+
+//animation
+let animateScene, animationSpeed = 1, RESTART = false, isAnimating = false, isAnimationDone = false;
 
 function setupThreeJs() {
 	container = document.getElementById('container3D');
@@ -103,8 +105,8 @@ function animate() {
 	const delta = timer.getDelta();
 
 	//ANIMATE SCRIPT
-    if (isAnimating) {
-        animateScene.animate(delta * animationSpeed);
+    if (isAnimating && isAnimationDone==false) {
+        isAnimationDone = animateScene.animate(delta * animationSpeed);
     }
 
 	if(RESTART){
@@ -114,7 +116,7 @@ function animate() {
 
 	switch(params.camaraActual){
 		case 'COCKPIT' :{
-			sceneManager.moveShip(keys);
+			sceneManager.moveShip(keys,isAnimationDone);
 			break;
 		}
 		case 'ORBITAL':{
@@ -185,11 +187,12 @@ function createMenu() {
 
 	//VELOCIDAD
 	gui.add(actions, 'speed', {
-		'0.25x': 0.25,
 	    '0.5x': 0.5,
 	    '1x': 1,
 	    '2x': 2,
-	    '4x': 4
+	    '4x': 4,
+		'8x': 8,
+		'16x': 8,
 	})
 	.name('Velocidad')
 	.onChange((value) => {
@@ -218,8 +221,7 @@ function createMenu() {
 	    event.stopPropagation();
 
 	    isAnimating = !isAnimating;
-
-	    animate_button.textContent = isAnimating ? 'Pause' : 'Play';
+	    animate_button.textContent =isAnimationDone? 'Finalized' : isAnimating ? 'Pause' : 'Play';
 	    animate_button.style.backgroundColor = isAnimating ? '#2ecc71' : '#444';
 	});
 
@@ -228,17 +230,17 @@ function createMenu() {
 	//RESTART
 	const restart_controller = gui.add(actions, 'restart').name('');
 	const restart_buttonContainer = restart_controller.domElement;
-	
+
 	restart_buttonContainer.innerHTML = '';
-	
+
 	const restart_button = button.cloneNode(true);
 	restart_button.textContent = 'Restart';
-	
+
 	restart_button.addEventListener('click', (event) => {
 	    event.stopPropagation();
-	
+
 	    RESTART = true;
 	});
-	
+
 	restart_buttonContainer.appendChild(restart_button);
 }

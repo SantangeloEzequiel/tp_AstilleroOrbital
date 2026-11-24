@@ -21,6 +21,13 @@ import { createTieCockpit as createTieCockpit} from '../models_code/TIE-Fighter/
 //model grua
 import { buildGrua } from './buildGrua.js';
 
+//SHIP
+import { buildShip} from '../models_code/buildTieFighter.js';
+
+//camaras
+import { CAMERA } from './cameras.js';
+
+
 
 
 
@@ -65,6 +72,15 @@ export class AnimateScene {
         //FUSELAGE
         this.fuselage = [];
         this.fuselage.push(model_fusesalge());
+        const cockpit = createTieCockpit();
+        cockpit.rotateX(Math.PI/2)
+        cockpit.add(this.cameras[CAMERA.COCKPIT]);
+        this.fuselage[0].add(cockpit);
+
+        //CAMARA
+        this.cameras[CAMERA.COCKPIT].position.set(0, 0, 0);
+        this.cameras[CAMERA.COCKPIT].rotation.set(Math.PI, 0, 0);
+        
 
         //PLATAFORM 
         plataform_fuselage.add(door);
@@ -106,7 +122,9 @@ export class AnimateScene {
         piston.translateX(-side_length);
         this.wings[0].translateY(-side_length);
         this.wings[0].translateZ(0.3);
-        this.wings[0].scale.set(1,1,-1);
+        this.wings[0].scale.set(1,1,1);
+        this.wings[0].rotateY(Math.PI);
+
         this.wings[1].translateY(-side_length);
         this.wings[1].translateZ(-TIE_measures.WINGS_FRAME_DIAMETER*2);
         this.wings[1].scale.set(1,1,-1);
@@ -177,7 +195,7 @@ export class AnimateScene {
 
         this_animation_time = 3; 
         if((time = stepTime(total_animation_time, this_animation_time)) > 0){
-            const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2) / this_animation_time;
+            const speed = (HANGAR_measures.TOTAL_HEIGHT/6 + TIE_measures.TOTAL_HEIGHT / 2 + TIE_measures.WINGS_FRAME_DIAMETER/8) / this_animation_time;
             this.piston.translateY(speed * time );
         }        
         if((time = stepTime(total_animation_time, this_animation_time)) > 0){
@@ -328,7 +346,7 @@ export class AnimateScene {
         this_animation_time = 2;
         if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
-            first_axis.rotateZ(-speed/2 * time + speed/140 * time);
+            first_axis.rotateZ(-speed/2 * time + speed/100 * time);
             second_axis.rotateZ(speed/2 * time );
         }
         total_animation_time+=this_animation_time;
@@ -362,9 +380,15 @@ export class AnimateScene {
             this.ala_agarrada = false;
 
             //la acomodo desde 0
-            this.wings[0].rotation.set(0, -Math.PI/2, 0);
-            this.wings[0].position.set(- (this.side_length + TIE_measures.FUSELAGE_LENGTH/2), TIE_measures.TOTAL_HEIGHT / 2, 0);
-            this.wings[0].scale.set(1, 1, -1);
+            this.wings[0].rotation.set(0 , -Math.PI/2,  0);
+            this.wings[0].rotateX(Math.PI);
+            this.wings[0].rotateZ(Math.PI);
+            this.wings[0].position.set(- (this.side_length + TIE_measures.FUSELAGE_LENGTH/2), TIE_measures.TOTAL_HEIGHT / 2 , 0);
+            this.wings[0].scale.set(1, 1, 1);
+
+            this.wings[0].position.x += 0;
+            this.wings[0].position.y += TIE_measures.WINGS_FRAME_DIAMETER;
+            this.wings[0].position.z += 0;
         }
         total_animation_time+=this_animation_time;
 
@@ -376,7 +400,7 @@ export class AnimateScene {
         this_animation_time=0.5;
         if((time = stepTime(total_animation_time, this_animation_time)) > 0){
             const speed = (Math.PI) / this_animation_time;
-            first_axis.rotateZ(speed/120 * time );
+            first_axis.rotateZ(speed/100 * time );
             this.grua.rotateY(-speed/25 * time);
         }
         total_animation_time+=this_animation_time;
@@ -412,7 +436,7 @@ export class AnimateScene {
         }
         //sube el ala
         if((time = stepTime(total_animation_time, this_animation_time)) > 0){
-            const speed = (0.4+TIE_measures.WINGS_FRAME_DIAMETER*2) / this_animation_time;
+            const speed = (0.5+TIE_measures.WINGS_FRAME_DIAMETER*2) / this_animation_time;
             this.wings[1].translateZ(speed * time);
         }
         total_animation_time+=this_animation_time;
@@ -560,12 +584,12 @@ export class AnimateScene {
 
                 //la acomodo del otro lado del fuselaje
             this.wings[1].rotation.set(0, Math.PI/2, 0);
-            this.wings[1].position.set(
-                -(this.side_length - TIE_measures.FUSELAGE_LENGTH/2),
-                TIE_measures.TOTAL_HEIGHT/2,
-                0
-            );
+            this.wings[1].position.set(-(this.side_length - TIE_measures.FUSELAGE_LENGTH/2) , TIE_measures.TOTAL_HEIGHT/2 , 0);
             this.wings[1].scale.set(1, 1, -1);
+
+            this.wings[1].position.x += 0;
+            this.wings[1].position.y += TIE_measures.WINGS_FRAME_DIAMETER;
+            this.wings[1].position.z += 0;
         }
         total_animation_time+=this_animation_time;
 
@@ -659,6 +683,30 @@ export class AnimateScene {
             this.door_grua.translateX(speed * time);
         }
         total_animation_time+=this_animation_time;
+
+
+        //FINAL 
+        
+       if(this.elapsed_time >= total_animation_time){
+        
+            this.scene.remove(this.fuselage[0]);
+            this.scene.remove(this.wings[0]);
+            this.scene.remove(this.wings[1]);
+            
+            const ship = buildShip(1,0);
+            ship.name = "ship";
+            ship.position.set(-this.side_length , TIE_measures.TOTAL_HEIGHT/2 + TIE_measures.WINGS_FRAME_DIAMETER, 0);
+            ship.rotation.set(0,Math.PI,0);
+
+            ship.add(this.cameras[CAMERA.COCKPIT]);
+            this.cameras[CAMERA.COCKPIT].position.set(0, 0, 0);
+            this.cameras[CAMERA.COCKPIT].rotation.set(0, 0, 0);
+
+            this.scene.add(ship);
+           return true;
+        }
+        
+        return false;
         
     }
 }
@@ -674,7 +722,7 @@ function model_createTieWing_1(x){
 
 function model_fusesalge(){
     const fuselage = createTieFuselage()
-    fuselage.scale.y=-1;
+    fuselage.rotateZ(Math.PI);
     fuselage.translateZ(- TIE_measures.FUSELAGE_DIAMETER_CENTER - 0.3);
     return fuselage;
 }
