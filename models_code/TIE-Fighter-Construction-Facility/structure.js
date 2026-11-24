@@ -530,8 +530,10 @@ export function buildStructure(Segments){
     const material_floor = new THREE.MeshStandardMaterial({
         map: texture_uv.piso,
         side: THREE.DoubleSide,
-        metalness: 0.5,
-        roughness: 0.3,
+        normalMap: normal_texture_uv.piso,
+        normalScale: new THREE.Vector2(0.5, 0.5),
+        metalness: 0.7,
+        roughness: 0.1,
         envMapIntensity: 1.5  
         });
     const floor = new THREE.Mesh(floor_geometry,material_floor);
